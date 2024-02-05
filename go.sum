@@ -23,6 +23,8 @@ github.com/NuEventTeam/protos v0.1.21 h1:YNJemga56p+b1DmNKGNtnHVicZ1iWpLuEOZk/T1
 github.com/NuEventTeam/protos v0.1.21/go.mod h1:IKZKPhdmYN+SzMt7J52XU302eUXoEXEKMbcooDfrT7Q=
 github.com/NuEventTeam/protos v0.1.22 h1:XTjB5TTDEcUC5g7H1jKn/eRh6buCAymcDlXKBX8rFic=
 github.com/NuEventTeam/protos v0.1.22/go.mod h1:IKZKPhdmYN+SzMt7J52XU302eUXoEXEKMbcooDfrT7Q=
+github.com/NuEventTeam/protos v0.1.23 h1:ii9sPHeXZ/1uWcJFceRlVekK9OqSVefG+CkzGLcWcKQ=
+github.com/NuEventTeam/protos v0.1.23/go.mod h1:IKZKPhdmYN+SzMt7J52XU302eUXoEXEKMbcooDfrT7Q=
 github.com/NuEventTeam/sso v0.0.0-20240131173455-00381cdfda21 h1:9S9SNwnt7iyMzoF+Lvyvfkgn/C8eem2VDNcGw7IN0No=
 github.com/NuEventTeam/sso v0.0.0-20240131173455-00381cdfda21/go.mod h1:fVfGMJiP3e3MrFkhZrP6au+QJbmMq5rUT+YgCPC11Vc=
 github.com/cespare/xxhash/v2 v2.2.0 h1:DC2CZ1Ep5Y4k3ZQ899DldepgrayRUGE6BBZ/cd9Cj44=

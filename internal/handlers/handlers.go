@@ -46,13 +46,19 @@ func (h *GRPCHandler) CreateEvent(ctx context.Context, request *event.CreateEven
 	}
 
 	locations := []models.Location{}
+
 	for _, l := range request.Event.Locations {
+		startsAt, err := time.Parse(time.DateTime, l.StartAt)
+		endsAt, err := time.Parse(time.DateTime, l.StartAt)
+		if err != nil {
+			return nil, err
+		}
 		locations = append(locations, models.Location{
 			Address:   l.Address,
 			Longitude: l.Longitude,
 			Latitude:  l.Latitude,
-			StartsAt:  time.Unix(l.StartAt, 0),
-			EndsAt:    time.Unix(l.EndAt, 0),
+			StartsAt:  startsAt,
+			EndsAt:    endsAt,
 			Seats:     l.Seats,
 		})
 	}
@@ -120,8 +126,10 @@ func (h *GRPCHandler) GetCategories(ctx context.Context, request *event.GetCateg
 
 func (h *GRPCHandler) CreateUser(ctx context.Context, request *event.CreateUserRequest) (*event.CreateUserResponse, error) {
 
-	dateOfBirth := time.Unix(request.User.BirthDate, 0)
-
+	dateOfBirth, err := time.Parse(time.DateOnly, request.User.BirthDate)
+	if err != nil {
+		return nil, err
+	}
 	var preferences []models.Category
 	for _, val := range request.Categories {
 		preferences = append(preferences, models.Category{ID: val.Id})
@@ -138,7 +146,7 @@ func (h *GRPCHandler) CreateUser(ctx context.Context, request *event.CreateUserR
 		Preferences:  preferences,
 	}
 
-	err := h.eventSvc.CreateUser(ctx, user)
+	err = h.eventSvc.CreateUser(ctx, user)
 	if err != nil {
 		return nil, err
 	}
@@ -190,8 +198,8 @@ func (h *GRPCHandler) GetEventByID(ctx context.Context, request *event.GetEventB
 			Longitude: l.Longitude,
 			Latitude:  l.Latitude,
 			Seats:     l.Seats,
-			StartAt:   l.StartsAt.Unix(),
-			EndAt:     l.EndsAt.Unix(),
+			StartAt:   l.StartsAt.Format(time.DateTime),
+			EndAt:     l.EndsAt.Format(time.DateTime),
 		})
 	}
 
