@@ -4,7 +4,7 @@ go 1.21.0
 
 require (
 	github.com/Masterminds/squirrel v1.5.4
-	github.com/NuEventTeam/protos v0.1.20
+	github.com/NuEventTeam/protos v0.1.22
 	github.com/ilyakaznacheev/cleanenv v1.5.0
 	github.com/jackc/pgx/v5 v5.5.3
 	github.com/redis/go-redis/v9 v9.4.0
