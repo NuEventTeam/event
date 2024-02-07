@@ -23,10 +23,9 @@ func main() {
 	logger.Println("starting application")
 
 	db := database.NewDatabase(context.Background(), cfg.Database)
-	//storage
+
 	cache := keydb.New(context.Background(), cfg.Cache)
 
-	//service
 	eventSvc := event_service.NewEventSvc(db, cache)
 
 	grpc := handlers.NewGRPCHandler(db, cache, eventSvc)

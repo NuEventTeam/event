@@ -4,12 +4,14 @@ import (
 	"context"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/models"
+	"log"
 )
 
 func CreateUser(ctx context.Context, db DBTX, user models.User) (int64, error) {
 	query := qb.Insert("users").
-		Columns("user_id", "phone", "username", "lastname", "firstname", "profile_image").
-		Values(user.UserID, user.Phone, user.Username, user.Lastname, user.Firstname, user.ProfileImage)
+		Columns("user_id", "phone", "username", "lastname", "firstname", "profile_image", "birthdate").
+		Values(user.UserID, user.Phone, user.Username, user.Lastname, user.Firstname, user.ProfileImage, user.DateOfBirth).
+		Suffix("returning id")
 
 	stmt, args, err := query.ToSql()
 	if err != nil {
@@ -42,7 +44,7 @@ func CheckUsername(ctx context.Context, db DBTX, username string) (bool, error) 
 		return false, err
 	}
 
-	return count == 0, nil
+	return count != 0, nil
 }
 
 func UpdateUser(ctx context.Context, db DBTX, userID int64, params map[string]interface{}) error {
@@ -60,11 +62,22 @@ func UpdateUser(ctx context.Context, db DBTX, userID int64, params map[string]in
 
 }
 
-func GetUser(ctx context.Context, db DBTX, userID int64) (models.User, error) {
-	query := qb.Select("phone", "username", "lastname", "firstname", "data_of_birth", "profile_image").
+type GetUserArgss struct {
+	UserID   *int64
+	Username *string
+}
+
+func GetUser(ctx context.Context, db DBTX, args GetUserArgss) (models.User, error) {
+	query := qb.Select("id", "user_id", "phone", "username", "lastname", "firstname", "birthdate", "profile_image").
 		From("users").
-		Where(sq.Eq{"user_id": userID}).
 		Where(sq.Eq{"deleted_at": nil})
+
+	if args.UserID != nil {
+		query = query.Where(sq.Eq{"user_id": *args.UserID})
+	}
+	if args.Username != nil {
+		query = query.Where(sq.Eq{"username": *args.Username})
+	}
 
 	stmt, params, err := query.ToSql()
 	if err != nil {
@@ -73,7 +86,7 @@ func GetUser(ctx context.Context, db DBTX, userID int64) (models.User, error) {
 
 	var user models.User
 
-	err = db.QueryRow(ctx, stmt, params...).Scan(&user.Phone, &user.Username, &user.Lastname,
+	err = db.QueryRow(ctx, stmt, params...).Scan(&user.ID, &user.UserID, &user.Phone, &user.Username, &user.Lastname,
 		&user.Firstname, &user.DateOfBirth, &user.ProfileImage)
 
 	return user, err
@@ -81,16 +94,17 @@ func GetUser(ctx context.Context, db DBTX, userID int64) (models.User, error) {
 }
 
 func GetUserPreferences(ctx context.Context, db DBTX, userID int64) ([]models.Category, error) {
-	query := qb.Select("id", "name").
+	query := qb.Select("category_id", "name").
 		From("user_preferences").
 		InnerJoin("categories on user_preferences.category_id = categories.id").
-		Where(sq.Eq{"categories.deleted_at": nil})
+		Where(sq.Eq{"categories.deleted_at": nil}).
+		Where(sq.Eq{"user_id": userID})
 
 	stmt, params, err := query.ToSql()
 	if err != nil {
 		return nil, err
 	}
-
+	log.Println(stmt)
 	var res []models.Category
 
 	rows, err := db.Query(ctx, stmt, params...)
@@ -120,7 +134,7 @@ func GetUserPreferences(ctx context.Context, db DBTX, userID int64) ([]models.Ca
 
 func AddUserPreference(ctx context.Context, db DBTX, userID int64, category ...models.Category) error {
 
-	query := qb.Insert("user_preference").
+	query := qb.Insert("user_preferences").
 		Columns("user_id", "category_id")
 
 	for i := range category {
@@ -138,7 +152,7 @@ func AddUserPreference(ctx context.Context, db DBTX, userID int64, category ...m
 
 func RemoveUserPreference(ctx context.Context, db DBTX, userID int64, categoryID int64) error {
 
-	query := qb.Delete("user_preference").
+	query := qb.Delete("user_preferences").
 		Where(sq.Eq{"user_id": userID}).
 		Where(sq.Eq{"category_id": categoryID})
 

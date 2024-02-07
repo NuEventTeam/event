@@ -27,10 +27,11 @@ type Database struct {
 }
 
 type Cache struct {
-	Port   string `yaml:"port"`
-	Host   string `yaml:"host"`
-	Prefix string `yaml:"prefix"`
-	Index  int    `yaml:"index"`
+	Port     string `yaml:"port"`
+	Host     string `yaml:"host"`
+	Password string `yaml:"password"`
+	Prefix   string `yaml:"prefix"`
+	Index    int    `yaml:"index"`
 }
 
 func MustLoad() *Config {

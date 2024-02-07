@@ -6,10 +6,11 @@ import (
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/jackc/pgx/v5"
+	"log"
 )
 
-func (e *EventSvc) GetUser(ctx context.Context, userId int64) (models.User, error) {
-	profile, err := database.GetUser(ctx, e.db.DB, userId)
+func (e *EventSvc) GetUserById(ctx context.Context, userId int64) (models.User, error) {
+	profile, err := database.GetUser(ctx, e.db.DB, database.GetUserArgss{UserID: &userId})
 	if err != nil {
 		return models.User{}, err
 	}
@@ -22,7 +23,21 @@ func (e *EventSvc) GetUser(ctx context.Context, userId int64) (models.User, erro
 	profile.Preferences = preferences
 
 	return profile, nil
+}
+func (e *EventSvc) GetUserByUsername(ctx context.Context, username string) (models.User, error) {
+	profile, err := database.GetUser(ctx, e.db.DB, database.GetUserArgss{Username: &username})
+	if err != nil {
+		return models.User{}, err
+	}
+	log.Println(profile.UserID)
+	preferences, err := database.GetUserPreferences(ctx, e.db.DB, profile.UserID)
+	if err != nil {
+		return models.User{}, err
+	}
 
+	profile.Preferences = preferences
+
+	return profile, nil
 }
 
 func (e *EventSvc) CreateUser(ctx context.Context, user models.User) error {
@@ -33,12 +48,12 @@ func (e *EventSvc) CreateUser(ctx context.Context, user models.User) error {
 
 	defer tx.Rollback(ctx)
 
-	userID, err := database.CreateUser(ctx, tx, user)
+	_, err = database.CreateUser(ctx, tx, user)
 	if err != nil {
 		return err
 	}
 
-	err = database.AddUserPreference(ctx, tx, userID, user.Preferences...)
+	err = database.AddUserPreference(ctx, tx, user.UserID, user.Preferences...)
 	if err != nil {
 		return err
 	}
@@ -55,17 +70,9 @@ func (e *EventSvc) ChangeUserProfile(ctx context.Context, userId int64, params m
 	return err
 }
 
-func (e *EventSvc) CheckUsername(ctx context.Context, username string) error {
+func (e *EventSvc) CheckUsername(ctx context.Context, username string) (bool, error) {
 	exists, err := database.CheckUsername(ctx, e.db.DB, username)
-	if err != nil {
-		return err
-	}
-
-	if exists {
-		return fmt.Errorf("username exists")
-	}
-
-	return nil
+	return exists, err
 }
 
 func (e *EventSvc) AddUserPreference(ctx context.Context, userID int64, category []models.Category) error {

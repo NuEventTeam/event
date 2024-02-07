@@ -3,6 +3,7 @@ package models
 import "time"
 
 type User struct {
+	ID           int64
 	UserID       int64
 	Phone        string
 	Username     string

@@ -39,7 +39,7 @@ func NewDatabase(ctx context.Context, cfg config.Database) *Database {
 	q.Add("sslmode", "disable")
 
 	dsn.RawQuery = q.Encode()
-
+	log.Println(dsn.String())
 	poolConfig, err := pgxpool.ParseConfig(dsn.String())
 	if err != nil {
 		log.Fatal(err)

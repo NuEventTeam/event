@@ -23,8 +23,9 @@ type Cache struct {
 func New(ctx context.Context, cfg config.Cache) *Cache {
 	addr := fmt.Sprintf("%s:%s", cfg.Host, cfg.Port)
 	client := redis.NewClient(&redis.Options{
-		Addr: addr,
-		DB:   cfg.Index},
+		Addr:     addr,
+		DB:       cfg.Index,
+		Password: cfg.Password},
 	)
 
 	if err := client.Ping(ctx).Err(); err != nil {

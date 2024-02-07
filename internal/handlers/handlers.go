@@ -2,11 +2,14 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"github.com/NuEventTeam/events/internal/models"
 	event_service "github.com/NuEventTeam/events/internal/services/event"
 	"github.com/NuEventTeam/events/internal/storage/cache"
 	"github.com/NuEventTeam/events/internal/storage/database"
+	"github.com/NuEventTeam/events/pkg"
 	"github.com/NuEventTeam/protos/gen/go/event"
+	"log"
 	"time"
 )
 
@@ -109,7 +112,7 @@ func (h *GRPCHandler) GetCategories(ctx context.Context, request *event.GetCateg
 	}
 
 	categories := []*event.Category{}
-
+	log.Println(categories)
 	for _, c := range cats {
 		categories = append(categories, &event.Category{
 			Id:   c.ID,
@@ -125,6 +128,15 @@ func (h *GRPCHandler) GetCategories(ctx context.Context, request *event.GetCateg
 }
 
 func (h *GRPCHandler) CreateUser(ctx context.Context, request *event.CreateUserRequest) (*event.CreateUserResponse, error) {
+
+	exist, err := h.eventSvc.CheckUsername(ctx, request.User.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	if exist {
+		return &event.CreateUserResponse{Ok: false, Message: "username exists"}, nil
+	}
 
 	dateOfBirth, err := time.Parse(time.DateOnly, request.User.BirthDate)
 	if err != nil {
@@ -155,9 +167,12 @@ func (h *GRPCHandler) CreateUser(ctx context.Context, request *event.CreateUserR
 }
 
 func (h *GRPCHandler) CheckUsername(ctx context.Context, request *event.CheckUsernameRequest) (*event.CheckUsernameResponse, error) {
-	err := h.eventSvc.CheckUsername(ctx, request.Username)
+	exists, err := h.eventSvc.CheckUsername(ctx, request.Username)
 	if err != nil {
 		return nil, err
+	}
+	if exists {
+		return &event.CheckUsernameResponse{Ok: false, Message: "username exists"}, nil
 	}
 
 	return &event.CheckUsernameResponse{Ok: true}, nil
@@ -269,9 +284,12 @@ func (h *GRPCHandler) EditUserProfile(ctx context.Context, request *event.EditUs
 	}
 
 	if request.Username != nil {
-		err := h.eventSvc.CheckUsername(ctx, *request.Username)
+		exists, err := h.eventSvc.CheckUsername(ctx, *request.Username)
 		if err != nil {
 			return nil, err
+		}
+		if exists {
+			return &event.EditUserProfileResponse{Ok: false, Message: "username exists"}, nil
 		}
 		params["username"] = *request.Username
 	}
@@ -287,5 +305,35 @@ func (h *GRPCHandler) EditUserProfile(ctx context.Context, request *event.EditUs
 	return &event.EditUserProfileResponse{
 		Ok:      true,
 		Message: "success",
+	}, nil
+}
+
+func (h *GRPCHandler) GetUser(ctx context.Context, request *event.GetUserRequest) (*event.User, error) {
+
+	user, err := h.eventSvc.GetUserByUsername(ctx, request.Username)
+	if err != nil {
+		return nil, err
+	}
+
+	profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
+
+	categories := []*event.Category{}
+
+	for _, p := range user.Preferences {
+		categories = append(categories, &event.Category{
+			Id:   p.ID,
+			Name: p.Name,
+		})
+	}
+	log.Println(categories)
+	return &event.User{
+		UserID:       user.UserID,
+		Username:     user.Username,
+		ProfileImage: &profileImgUrl,
+		BirthDate:    user.DateOfBirth.Format(time.DateOnly),
+		Phone:        user.Phone,
+		Firstname:    user.Firstname,
+		Lastname:     user.Lastname,
+		Preferences:  categories,
 	}, nil
 }
