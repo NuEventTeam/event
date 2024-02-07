@@ -5,7 +5,6 @@ import (
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/models"
-	"log"
 )
 
 type GetCategoriesParams struct {
@@ -28,7 +27,6 @@ func GetCategories(ctx context.Context, db DBTX, params GetCategoriesParams) ([]
 	if err != nil {
 		return nil, err
 	}
-	log.Println(stmt)
 	var res []models.Category
 
 	rows, err := db.Query(ctx, stmt, args...)

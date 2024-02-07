@@ -4,7 +4,6 @@ import (
 	"context"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/models"
-	"log"
 )
 
 func CreateUser(ctx context.Context, db DBTX, user models.User) (int64, error) {
@@ -104,7 +103,6 @@ func GetUserPreferences(ctx context.Context, db DBTX, userID int64) ([]models.Ca
 	if err != nil {
 		return nil, err
 	}
-	log.Println(stmt)
 	var res []models.Category
 
 	rows, err := db.Query(ctx, stmt, params...)

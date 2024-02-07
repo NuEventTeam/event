@@ -9,7 +9,6 @@ import (
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/NuEventTeam/protos/gen/go/event"
-	"log"
 	"time"
 )
 
@@ -112,7 +111,6 @@ func (h *GRPCHandler) GetCategories(ctx context.Context, request *event.GetCateg
 	}
 
 	categories := []*event.Category{}
-	log.Println(categories)
 	for _, c := range cats {
 		categories = append(categories, &event.Category{
 			Id:   c.ID,
@@ -325,7 +323,6 @@ func (h *GRPCHandler) GetUser(ctx context.Context, request *event.GetUserRequest
 			Name: p.Name,
 		})
 	}
-	log.Println(categories)
 	return &event.User{
 		UserID:       user.UserID,
 		Username:     user.Username,

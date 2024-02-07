@@ -6,7 +6,6 @@ import (
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/jackc/pgx/v5"
-	"log"
 )
 
 func (e *EventSvc) GetUserById(ctx context.Context, userId int64) (models.User, error) {
@@ -29,7 +28,7 @@ func (e *EventSvc) GetUserByUsername(ctx context.Context, username string) (mode
 	if err != nil {
 		return models.User{}, err
 	}
-	log.Println(profile.UserID)
+
 	preferences, err := database.GetUserPreferences(ctx, e.db.DB, profile.UserID)
 	if err != nil {
 		return models.User{}, err
