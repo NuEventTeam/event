@@ -1,0 +1,16 @@
+env: "local"
+grpc:
+  port: 8002
+  timeout: 5m
+database:
+  host: "event-db"
+  user: "event"
+  password: "event"
+  name: "event"
+  port: 5432
+cache:
+  prefix: "event"
+  port: "6379"
+  host: "keydb"
+  password: "auth"
+  index: 1
