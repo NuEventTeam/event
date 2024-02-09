@@ -221,7 +221,12 @@ func GetEventCategories(ctx context.Context, db DBTX, eventId int64) ([]models.C
 }
 
 func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Manager, error) {
-	query := qb.Select("users.username", "event_manages.user_id, event_managers.title, event_managers.role_id, event_roles.name").
+	query := qb.Select(
+		"users.username",
+		"event_manages.user_id",
+		"event_managers.role_id",
+		"event_roles.name",
+	).
 		From("users").
 		InnerJoin("event_managers on event_managers.user_id = users.user_id").
 		InnerJoin("event_roles on event_roles.id = event_managers.role_id").
@@ -245,7 +250,12 @@ func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Man
 	for rows.Next() {
 		var m models.Manager
 
-		err := rows.Scan(&m.User.Username, &m.User.UserID, &m.Title, &m.Role.ID, m.Role.Name)
+		err := rows.Scan(&m.User.Username, &m.User.UserID, &m.Role.ID, m.Role.Name)
+		if err != nil {
+			return nil, err
+		}
+
+		m.Role.Permissions, err = GetRolePermissions(ctx, db, m.Role.ID)
 		if err != nil {
 			return nil, err
 		}

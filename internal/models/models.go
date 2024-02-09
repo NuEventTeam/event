@@ -22,7 +22,7 @@ type Permission struct {
 type Role struct {
 	ID          int64
 	Name        string
-	Permissions []Permission
+	Permissions []int64
 }
 
 type Category struct {
@@ -45,7 +45,6 @@ type Event struct {
 }
 
 type Manager struct {
-	Title   string
 	EventId int64
 	User    User
 	Role    Role

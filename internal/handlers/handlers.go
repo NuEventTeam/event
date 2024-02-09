@@ -40,16 +40,15 @@ func (h *GRPCHandler) CreateEvent(ctx context.Context, request *event.CreateEven
 
 	images := []models.Image{}
 
-	for _, i := range request.Event.Images {
+	for _, i := range request.Images {
 		images = append(images, models.Image{
-			Url:       i.Url,
-			CreatedAt: time.Time{},
+			Url: i,
 		})
 	}
 
 	locations := []models.Location{}
 
-	for _, l := range request.Event.Locations {
+	for _, l := range request.Locations {
 		startsAt, err := time.Parse(time.DateTime, l.StartAt)
 		endsAt, err := time.Parse(time.DateTime, l.StartAt)
 		if err != nil {
@@ -65,27 +64,25 @@ func (h *GRPCHandler) CreateEvent(ctx context.Context, request *event.CreateEven
 		})
 	}
 
-	managers := []models.Manager{}
-	for _, m := range request.Event.Managers {
-		managers = append(managers, models.Manager{
-			Title: m.Title,
-			User:  models.User{UserID: m.UserID},
-			Role:  models.Role{ID: m.RoleID},
-		})
-	}
+	managers := []models.Manager{{
+		User: models.User{UserID: request.Author},
+		Role: models.Role{
+			Name:        pkg.AuthorTitle,
+			Permissions: []int64{pkg.PermissionRead, pkg.PermissionVerify, pkg.PermissionVerify}},
+	}}
 
 	categories := []models.Category{}
-	for _, c := range request.Event.Categories {
+	for _, c := range request.Categories {
 		categories = append(categories, models.Category{
-			ID: c.Id,
+			ID: c,
 		})
 	}
 
 	e := models.Event{
-		Title:       request.Event.Title,
-		Description: request.Event.Description,
-		MaxAge:      request.Event.AgeMax,
-		MinAge:      request.Event.AgeMin,
+		Title:       request.Title,
+		Description: request.Description,
+		MaxAge:      request.AgeMax,
+		MinAge:      request.AgeMin,
 		Locations:   locations,
 		Images:      images,
 		Managers:    managers,
@@ -239,13 +236,16 @@ func (h *GRPCHandler) GetEventByID(ctx context.Context, request *event.GetEventB
 	for _, m := range e.Managers {
 		managers = append(managers, &event.Managers{
 			UserID: m.User.UserID,
-			RoleID: m.Role.ID,
-			Title:  m.Title,
+			Role: &event.Role{
+				Id:          m.Role.ID,
+				Name:        m.Role.Name,
+				Permissions: nil,
+			},
 		})
 	}
 
 	response := &event.Event{
-		ID:          e.ID,
+		Id:          e.ID,
 		Title:       e.Title,
 		Description: e.Description,
 		AgeMax:      e.MaxAge,

@@ -48,9 +48,24 @@ func (e *EventSvc) CreateEvent(ctx context.Context, event models.Event) (int64, 
 		return 0, err
 	}
 
-	err = database.AddEventManager(ctx, tx, eventId, event.Managers...)
-	if err != nil {
-		return 0, err
+	for _, m := range event.Managers {
+
+		roleId, err := database.CreateRole(ctx, tx, m.Role)
+		if err != nil {
+			return 0, err
+		}
+
+		m.Role.ID = roleId
+
+		err = database.AddRolePermissions(ctx, tx, m.Role)
+		if err != nil {
+			return 0, err
+		}
+
+		err = database.AddEventManager(ctx, tx, eventId, event.Managers...)
+		if err != nil {
+			return 0, err
+		}
 	}
 
 	if err := tx.Commit(ctx); err != nil {
@@ -90,6 +105,5 @@ func (e *EventSvc) GetEventByID(ctx context.Context, eventId int64) (*models.Eve
 	event.Locations = locations
 	event.Images = images
 	event.Managers = managers
-
 	return event, nil
 }
