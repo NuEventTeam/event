@@ -54,8 +54,8 @@ type Location struct {
 	ID        int64
 	EventID   int64
 	Address   string
-	Longitude float32
-	Latitude  float32
+	Longitude float64
+	Latitude  float64
 	StartsAt  time.Time
 	EndsAt    time.Time
 	Seats     *int64

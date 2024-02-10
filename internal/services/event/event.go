@@ -2,10 +2,12 @@ package event_service
 
 import (
 	"context"
+	"fmt"
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/internal/storage/cache"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/jackc/pgx/v5"
+	"log"
 )
 
 type EventSvc struct {
@@ -32,7 +34,7 @@ func (e *EventSvc) CreateEvent(ctx context.Context, event models.Event) (int64, 
 	if err != nil {
 		return 0, err
 	}
-
+	log.Println(eventId)
 	err = database.AddEventCategories(ctx, tx, eventId, event.Categories...)
 	if err != nil {
 		return 0, err
@@ -49,6 +51,7 @@ func (e *EventSvc) CreateEvent(ctx context.Context, event models.Event) (int64, 
 	}
 
 	for _, m := range event.Managers {
+		log.Println(m.User.UserID)
 
 		roleId, err := database.CreateRole(ctx, tx, m.Role)
 		if err != nil {
@@ -62,7 +65,7 @@ func (e *EventSvc) CreateEvent(ctx context.Context, event models.Event) (int64, 
 			return 0, err
 		}
 
-		err = database.AddEventManager(ctx, tx, eventId, event.Managers...)
+		err = database.AddEventManager(ctx, tx, eventId, m)
 		if err != nil {
 			return 0, err
 		}
@@ -80,26 +83,33 @@ func (e *EventSvc) GetEventByID(ctx context.Context, eventId int64) (*models.Eve
 	if err != nil {
 		return nil, err
 	}
-
+	if event == nil {
+		return nil, fmt.Errorf("event not found")
+	}
+	log.Println(event)
 	categories, err := database.GetEventCategories(ctx, e.db.DB, eventId)
 	if err != nil {
 		return nil, err
 	}
+	log.Println(categories)
 
 	locations, err := database.GetEventLocations(ctx, e.db.DB, eventId)
 	if err != nil {
 		return nil, err
 	}
+	log.Println(locations)
 
 	images, err := database.GetEventImages(ctx, e.db.DB, eventId)
 	if err != nil {
 		return nil, err
 	}
+	log.Println(images)
 
 	managers, err := database.GetEventManagers(ctx, e.db.DB, eventId)
 	if err != nil {
 		return nil, err
 	}
+	log.Println(managers)
 
 	event.Categories = categories
 	event.Locations = locations

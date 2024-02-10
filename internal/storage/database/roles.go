@@ -72,12 +72,7 @@ func RemoveRolePermissions(ctx context.Context, db DBTX, roleId int64, permissio
 }
 
 func GetRolePermissions(ctx context.Context, db DBTX, roleId int64) ([]int64, error) {
-	/*SELECT r.role_id, r.role_name, p.permission_id, p.permission_name
-	FROM user u
-	JOIN roles r ON u.role_id = r.role_id
-	JOIN role_permissions rp ON r.role_id = rp.role_id
-	JOIN permission p ON rp.permission_id = p.permission_id
-	WHERE u.user_id = your_user_id;*/
+
 	query := qb.Select("permission_id").
 		From("event_role_permissions").
 		Where(sq.Eq{"role_id": roleId})

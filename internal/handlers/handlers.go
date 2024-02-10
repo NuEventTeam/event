@@ -9,6 +9,7 @@ import (
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/NuEventTeam/protos/gen/go/event"
+
 	"time"
 )
 
@@ -56,8 +57,8 @@ func (h *GRPCHandler) CreateEvent(ctx context.Context, request *event.CreateEven
 		}
 		locations = append(locations, models.Location{
 			Address:   l.Address,
-			Longitude: l.Longitude,
-			Latitude:  l.Latitude,
+			Longitude: float64(l.Longitude),
+			Latitude:  float64(l.Latitude),
 			StartsAt:  startsAt,
 			EndsAt:    endsAt,
 			Seats:     l.Seats,
@@ -205,8 +206,8 @@ func (h *GRPCHandler) GetEventByID(ctx context.Context, request *event.GetEventB
 			Id:        l.ID,
 			EventId:   l.EventID,
 			Address:   l.Address,
-			Longitude: l.Longitude,
-			Latitude:  l.Latitude,
+			Longitude: float32(l.Longitude),
+			Latitude:  float32(l.Latitude),
 			Seats:     l.Seats,
 			StartAt:   l.StartsAt.Format(time.DateTime),
 			EndAt:     l.EndsAt.Format(time.DateTime),
@@ -222,13 +223,10 @@ func (h *GRPCHandler) GetEventByID(ctx context.Context, request *event.GetEventB
 		})
 	}
 
-	var images []*event.Image
+	var images []string
 
 	for _, i := range e.Images {
-		images = append(images, &event.Image{
-			EventID: i.EventID,
-			Url:     i.Url,
-		})
+		images = append(images, i.Url)
 	}
 
 	var managers []*event.Managers

@@ -6,6 +6,8 @@ import (
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/jackc/pgx/v5"
+	"log"
+	"strconv"
 )
 
 func CreateEvent(ctx context.Context, db DBTX, event models.Event) (int64, error) {
@@ -23,7 +25,7 @@ func CreateEvent(ctx context.Context, db DBTX, event models.Event) (int64, error
 
 	err = db.QueryRow(ctx, stmt, params...).Scan(&id)
 
-	return 0, err
+	return id, err
 }
 
 func AddEventManager(ctx context.Context, db DBTX, eventID int64, manager ...models.Manager) error {
@@ -67,7 +69,10 @@ func AddEventLocations(ctx context.Context, db DBTX, eventID int64, locations ..
 		Columns("event_id", "address", "longitude", "latitude", "seats", "starts_at", "ends_at")
 
 	for _, l := range locations {
-		query = query.Values(eventID, l.Address, l.Longitude, l.Latitude, l.Seats, l.StartsAt, l.EndsAt)
+		lg := strconv.FormatFloat(l.Longitude, 'f', 12, 32)
+		lt := strconv.FormatFloat(l.Latitude, 'f', 12, 32)
+		log.Println(lg, lt)
+		query = query.Values(eventID, l.Address, lg, lt, l.Seats, l.StartsAt, l.EndsAt)
 	}
 
 	stmt, params, err := query.ToSql()
@@ -101,14 +106,14 @@ func AddEventImage(ctx context.Context, db DBTX, eventID int64, images ...models
 }
 
 func GetEventByID(ctx context.Context, db DBTX, eventID int64) (*models.Event, error) {
-	query := qb.Select("events.id", "title", "description", "age_min", "age_max", "created_at").
+	query := qb.Select("id", "title", "description", "age_min", "age_max", "created_at").
 		From("events").Where(sq.Eq{"id": eventID})
 
 	stmt, params, err := query.ToSql()
 	if err != nil {
 		return nil, err
 	}
-
+	log.Println(stmt)
 	event := &models.Event{}
 
 	err = db.QueryRow(ctx, stmt, params...).Scan(&event.ID, &event.Title, &event.Description, &event.MinAge, &event.MaxAge, &event.CreatedAt)
@@ -156,7 +161,7 @@ func GetEventLocations(ctx context.Context, db DBTX, eventID int64) ([]models.Lo
 
 func GetEventImages(ctx context.Context, db DBTX, eventId int64) ([]models.Image, error) {
 	query := qb.Select("id", "event_id", "url").
-		From("images").
+		From("event_images").
 		Where(sq.Eq{"deleted_at": nil}).
 		Where(sq.Eq{"event_id": eventId})
 
@@ -223,7 +228,7 @@ func GetEventCategories(ctx context.Context, db DBTX, eventId int64) ([]models.C
 func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Manager, error) {
 	query := qb.Select(
 		"users.username",
-		"event_manages.user_id",
+		"event_managers.user_id",
 		"event_managers.role_id",
 		"event_roles.name",
 	).
@@ -250,7 +255,7 @@ func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Man
 	for rows.Next() {
 		var m models.Manager
 
-		err := rows.Scan(&m.User.Username, &m.User.UserID, &m.Role.ID, m.Role.Name)
+		err := rows.Scan(&m.User.Username, &m.User.UserID, &m.Role.ID, &m.Role.Name)
 		if err != nil {
 			return nil, err
 		}
