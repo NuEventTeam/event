@@ -131,7 +131,9 @@ func GetUserPreferences(ctx context.Context, db DBTX, userID int64) ([]models.Ca
 }
 
 func AddUserPreference(ctx context.Context, db DBTX, userID int64, category ...models.Category) error {
-
+	if len(category) == 0 {
+		return nil
+	}
 	query := qb.Insert("user_preferences").
 		Columns("user_id", "category_id")
 

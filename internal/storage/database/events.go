@@ -29,7 +29,9 @@ func CreateEvent(ctx context.Context, db DBTX, event models.Event) (int64, error
 }
 
 func AddEventManager(ctx context.Context, db DBTX, eventID int64, manager ...models.Manager) error {
-
+	if len(manager) == 0 {
+		return nil
+	}
 	query := qb.Insert("event_managers").
 		Columns("event_id", "user_id", "role_id")
 
@@ -47,7 +49,9 @@ func AddEventManager(ctx context.Context, db DBTX, eventID int64, manager ...mod
 }
 
 func AddEventCategories(ctx context.Context, db DBTX, eventID int64, category ...models.Category) error {
-
+	if len(category) == 0 {
+		return nil
+	}
 	query := qb.Insert("event_categories").
 		Columns("event_id", "category_id")
 
@@ -65,6 +69,10 @@ func AddEventCategories(ctx context.Context, db DBTX, eventID int64, category ..
 }
 
 func AddEventLocations(ctx context.Context, db DBTX, eventID int64, locations ...models.Location) error {
+
+	if len(locations) == 0 {
+		return nil
+	}
 	query := qb.Insert("event_locations").
 		Columns("event_id", "address", "longitude", "latitude", "seats", "starts_at", "ends_at")
 
@@ -87,6 +95,10 @@ func AddEventLocations(ctx context.Context, db DBTX, eventID int64, locations ..
 }
 
 func AddEventImage(ctx context.Context, db DBTX, eventID int64, images ...models.Image) error {
+	if len(images) == 0 {
+		return nil
+	}
+
 	query := qb.Insert("event_images").
 		Columns("event_id", "url")
 

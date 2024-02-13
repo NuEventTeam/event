@@ -41,6 +41,7 @@ func UpdateRole(ctx context.Context, db DBTX, roleID int64, name string) error {
 }
 
 func AddRolePermissions(ctx context.Context, db DBTX, role models.Role) error {
+
 	query := qb.Insert("event_role_permissions").
 		Columns("role_id", "permission_id")
 
