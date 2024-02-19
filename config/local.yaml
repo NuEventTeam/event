@@ -1,6 +1,6 @@
 env: "local"
 http:
-  port: 8002
+  port: 8003
   timeout: 5m
 jwt:
   secret: "my-32-character-ultra-secure-and-ultra-long-secret"
