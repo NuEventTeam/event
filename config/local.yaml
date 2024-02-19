@@ -1,7 +1,10 @@
 env: "local"
-grpc:
+http:
   port: 8002
   timeout: 5m
+jwt:
+  secret: "my-32-character-ultra-secure-and-ultra-long-secret"
+  expiry: 30m
 database:
   host: "event-db"
   user: "event"

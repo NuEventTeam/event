@@ -8,12 +8,22 @@ import (
 
 type Config struct {
 	Env      string   `yaml:"env"`
-	GRPC     GRPC     `yaml:"grpc"`
 	Database Database `yaml:"database"`
 	Cache    Cache    `yaml:"cache"`
+	JWT      JWT      `yaml:"jwt"`
+	Http     Http     `yaml:"http"`
+}
+
+type JWT struct {
+	Secret string        `yaml:"secret"`
+	Expiry time.Duration `yaml:"expiry"`
 }
 
 type GRPC struct {
+	Port    int           `yaml:"port"`
+	Timeout time.Duration `yaml:"timeout"`
+}
+type Http struct {
 	Port    int           `yaml:"port"`
 	Timeout time.Duration `yaml:"timeout"`
 }

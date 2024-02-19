@@ -3,68 +3,68 @@ package models
 import "time"
 
 type User struct {
-	ID           int64
-	UserID       int64
-	Phone        string
-	Username     string
-	Firstname    string
-	Lastname     *string
-	ProfileImage *string
-	DateOfBirth  time.Time
-	Preferences  []Category
+	ID           int64      `json:"id"`
+	UserID       int64      `json:"userID"`
+	Phone        string     `json:"phone"`
+	Username     string     `json:"username"`
+	Firstname    string     `json:"firstname"`
+	Lastname     *string    `json:"lastname"`
+	ProfileImage *string    `json:"profileImage"`
+	DateOfBirth  time.Time  `json:"dateOfBirth"`
+	Preferences  []Category `json:"preferences"`
 }
 
 type Permission struct {
-	ID   int64
-	Name string
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
 }
 
 type Role struct {
-	ID          int64
-	Name        string
-	Permissions []int64
+	ID          int64   `json:"id"`
+	Name        string  `json:"name"`
+	Permissions []int64 `json:"permissions"`
 }
 
 type Category struct {
-	ID   int64
-	Name string
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
 }
 
 type Event struct {
-	ID          int64
-	Title       string
-	Description string
-	MaxAge      *int64
-	MinAge      *int64
-	Images      []Image
-	CreatedAt   time.Time
-	Categories  []Category
-	Locations   []Location
-	Managers    []Manager
-	Attendees   []User
+	ID          int64      `json:"id"`
+	Title       string     `json:"title"`
+	Description string     `json:"description"`
+	MaxAge      *int64     `json:"maxAge"`
+	MinAge      *int64     `json:"minAge"`
+	Images      []Image    `json:"images"`
+	CreatedAt   time.Time  `json:"created_at"`
+	Categories  []Category `json:"categories"`
+	Locations   []Location `json:"locations"`
+	Managers    []Manager  `json:"managers"`
+	Attendees   []User     `json:"-"`
 }
 
 type Manager struct {
-	EventId int64
-	User    User
-	Role    Role
+	EventId int64 `json:"eventID"`
+	User    User  `json:"user"`
+	Role    Role  `json:"role"`
 }
 
 type Location struct {
-	ID        int64
-	EventID   int64
-	Address   string
-	Longitude float64
-	Latitude  float64
-	StartsAt  time.Time
-	EndsAt    time.Time
-	Seats     *int64
-	Archived  bool
+	ID        int64     `json:"id"`
+	EventID   int64     `json:"eventID"`
+	Address   string    `json:"address"`
+	Longitude float64   `json:"longitude"`
+	Latitude  float64   `json:"latitude"`
+	StartsAt  time.Time `json:"startsAt"`
+	EndsAt    time.Time `json:"endsAt"`
+	Seats     *int64    `json:"seats"`
+	Archived  bool      `json:"archived"`
 }
 
 type Image struct {
-	ID        int64
-	EventID   int64
-	Url       string
-	CreatedAt time.Time
+	ID        int64     `json:"id"`
+	EventID   int64     `json:"eventID"`
+	Url       string    `json:"url"`
+	CreatedAt time.Time `json:"createdAt"`
 }

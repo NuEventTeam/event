@@ -117,3 +117,8 @@ func (e *EventSvc) GetEventByID(ctx context.Context, eventId int64) (*models.Eve
 	event.Managers = managers
 	return event, nil
 }
+
+func (e *EventSvc) GetCategoriesByID(ctx context.Context, ids []int64) ([]models.Category, error) {
+	categories, err := database.GetCategories(ctx, e.db.DB, database.GetCategoriesParams{IDs: ids})
+	return categories, err
+}

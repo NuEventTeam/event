@@ -2,60 +2,47 @@ package app
 
 import (
 	"fmt"
-	"github.com/NuEventTeam/events/internal/handlers"
-	"github.com/NuEventTeam/events/internal/storage/cache"
-	"github.com/NuEventTeam/events/internal/storage/database"
-	"github.com/NuEventTeam/protos/gen/go/event"
-	"google.golang.org/grpc"
+	"github.com/NuEventTeam/events/internal/handlers/http"
+	"github.com/bytedance/sonic"
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
 	"log"
-	"log/slog"
-	"net"
 )
 
 type App struct {
-	log        *log.Logger
-	gRPCServer *grpc.Server
-	storage    *database.Database
-	cache      *cache.Cache
+	httpServer *fiber.App
 	port       int
 }
 
 func New(
-	log *log.Logger,
 	port int,
-	handler *handlers.GRPCHandler,
+	httpHandler *http.Handler,
 ) *App {
-	gRPCServer := grpc.NewServer()
-	event.RegisterEventServiceServer(gRPCServer, handler)
-	event.RegisterCategoriesServiceServer(gRPCServer, handler)
-	event.RegisterUserServiceServer(gRPCServer, handler)
+
+	httpServer := fiber.New(fiber.Config{
+		JSONEncoder: sonic.Marshal,
+		JSONDecoder: sonic.Unmarshal,
+	})
+
+	httpServer.Use(cors.New(cors.Config{
+		AllowHeaders:     "Origin,Content-Type,Authorization,Accept,Content-Length,Accept-Language,Accept-Encoding,Connection,Access-Control-Allow-Origin",
+		AllowOrigins:     "*",
+		AllowCredentials: true,
+		AllowMethods:     "GET,POST,HEAD,PUT,DELETE,PATCH,OPTIONS",
+	}))
+
+	httpHandler.SetUpRoutes(httpServer)
 
 	return &App{
-		log:        log,
-		gRPCServer: gRPCServer,
+		httpServer: httpServer,
 		port:       port,
 	}
 }
 
 func (a *App) MustRun() {
-
-	l, err := net.Listen("tcp", fmt.Sprintf(":%d", a.port))
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	a.log.Println("handlers server is running", "addr", l.Addr().String())
-
-	if err := a.gRPCServer.Serve(l); err != nil {
-		log.Fatal(err)
-	}
+	log.Fatal(a.httpServer.Listen(fmt.Sprintf("%d", a.port)))
 }
 
 func (a *App) Stop() {
-	const op = "grpcapp.Stop"
-
-	a.log.Println("stopping gRPC server", slog.Int("port", a.port))
-
-	a.gRPCServer.GracefulStop()
+	log.Fatal(a.httpServer.Shutdown())
 }
