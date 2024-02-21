@@ -30,20 +30,6 @@ type Category struct {
 	Name string `json:"name"`
 }
 
-type Event struct {
-	ID          int64      `json:"id"`
-	Title       string     `json:"title"`
-	Description string     `json:"description"`
-	MaxAge      *int64     `json:"maxAge"`
-	MinAge      *int64     `json:"minAge"`
-	Images      []Image    `json:"images"`
-	CreatedAt   time.Time  `json:"created_at"`
-	Categories  []Category `json:"categories"`
-	Locations   []Location `json:"locations"`
-	Managers    []Manager  `json:"managers"`
-	Attendees   []User     `json:"-"`
-}
-
 type Manager struct {
 	EventId int64 `json:"eventID"`
 	User    User  `json:"user"`
@@ -51,15 +37,15 @@ type Manager struct {
 }
 
 type Location struct {
-	ID        int64     `json:"id"`
-	EventID   int64     `json:"eventID"`
-	Address   string    `json:"address"`
-	Longitude float64   `json:"longitude"`
-	Latitude  float64   `json:"latitude"`
-	StartsAt  time.Time `json:"startsAt"`
-	EndsAt    time.Time `json:"endsAt"`
-	Seats     *int64    `json:"seats"`
-	Archived  bool      `json:"archived"`
+	ID        int64      `json:"id"`
+	EventID   int64      `json:"eventID"`
+	Address   *string    `json:"address"`
+	Longitude *float64   `json:"longitude"`
+	Latitude  *float64   `json:"latitude"`
+	StartsAt  *time.Time `json:"startsAt"`
+	EndsAt    *time.Time `json:"endsAt"`
+	Seats     *int64     `json:"seats"`
+	Archived  bool       `json:"archived"`
 }
 
 type Image struct {
@@ -67,4 +53,19 @@ type Image struct {
 	EventID   int64     `json:"eventID"`
 	Url       string    `json:"url"`
 	CreatedAt time.Time `json:"createdAt"`
+}
+
+type Event struct {
+	ID          int64      `json:"id"`
+	Title       *string    `json:"title"`
+	Description *string    `json:"description"`
+	MaxAge      *int64     `json:"maxAge"`
+	MinAge      *int64     `json:"minAge"`
+	Images      []Image    `json:"images"`
+	CreatedAt   time.Time  `json:"created_at"`
+	Categories  []Category `json:"categories"`
+	CategoryIds []int64    `json:"-"`
+	Locations   []Location `json:"locations"`
+	Managers    []Manager  `json:"managers"`
+	Attendees   []User     `json:"-"`
 }

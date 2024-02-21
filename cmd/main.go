@@ -5,9 +5,11 @@ import (
 	"github.com/NuEventTeam/events/internal/app"
 	"github.com/NuEventTeam/events/internal/config"
 	"github.com/NuEventTeam/events/internal/handlers/http"
+	"github.com/NuEventTeam/events/internal/services/cdn"
 	event_service "github.com/NuEventTeam/events/internal/services/event"
 	keydb "github.com/NuEventTeam/events/internal/storage/cache"
 	"github.com/NuEventTeam/events/internal/storage/database"
+	"github.com/NuEventTeam/events/pkg"
 	"log"
 	"os"
 	"os/signal"
@@ -24,7 +26,9 @@ func main() {
 
 	eventSvc := event_service.NewEventSvc(db, cache)
 
-	httpHandler := http.NewHttpHandler(eventSvc, cfg.JWT.Secret)
+	cdnService := cdn.New(pkg.CDNBaseUrl)
+
+	httpHandler := http.NewHttpHandler(eventSvc, cdnService, cfg.JWT.Secret)
 
 	application := app.New(cfg.Http.Port, httpHandler)
 

@@ -40,7 +40,7 @@ func New(
 }
 
 func (a *App) MustRun() {
-	log.Fatal(a.httpServer.Listen(fmt.Sprintf("%d", a.port)))
+	log.Fatal(a.httpServer.Listen(fmt.Sprintf(":%d", a.port)))
 }
 
 func (a *App) Stop() {

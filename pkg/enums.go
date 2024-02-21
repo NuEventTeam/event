@@ -1,6 +1,6 @@
 package pkg
 
-const CDNBaseUrl = "http://64.23.188.226:8003"
+const CDNBaseUrl = "http://localhost:8003"
 
 const (
 	AuthorTitle = "Author"

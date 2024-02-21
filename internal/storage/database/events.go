@@ -8,6 +8,7 @@ import (
 	"github.com/jackc/pgx/v5"
 	"log"
 	"strconv"
+	"time"
 )
 
 func CreateEvent(ctx context.Context, db DBTX, event models.Event) (int64, error) {
@@ -48,15 +49,15 @@ func AddEventManager(ctx context.Context, db DBTX, eventID int64, manager ...mod
 	return err
 }
 
-func AddEventCategories(ctx context.Context, db DBTX, eventID int64, category ...models.Category) error {
+func AddEventCategories(ctx context.Context, db DBTX, eventID int64, category ...int64) error {
 	if len(category) == 0 {
 		return nil
 	}
 	query := qb.Insert("event_categories").
 		Columns("event_id", "category_id")
 
-	for i := range category {
-		query = query.Values(eventID, category[i].ID)
+	for _, id := range category {
+		query = query.Values(eventID, id)
 	}
 
 	stmt, args, err := query.ToSql()
@@ -77,8 +78,8 @@ func AddEventLocations(ctx context.Context, db DBTX, eventID int64, locations ..
 		Columns("event_id", "address", "longitude", "latitude", "seats", "starts_at", "ends_at")
 
 	for _, l := range locations {
-		lg := strconv.FormatFloat(l.Longitude, 'f', 12, 32)
-		lt := strconv.FormatFloat(l.Latitude, 'f', 12, 32)
+		lg := strconv.FormatFloat(*l.Longitude, 'f', 12, 32)
+		lt := strconv.FormatFloat(*l.Latitude, 'f', 12, 32)
 		log.Println(lg, lt)
 		query = query.Values(eventID, l.Address, lg, lt, l.Seats, l.StartsAt, l.EndsAt)
 	}
@@ -171,11 +172,14 @@ func GetEventLocations(ctx context.Context, db DBTX, eventID int64) ([]models.Lo
 	return locs, nil
 }
 
-func GetEventImages(ctx context.Context, db DBTX, eventId int64) ([]models.Image, error) {
+func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64) ([]models.Image, error) {
 	query := qb.Select("id", "event_id", "url").
 		From("event_images").
 		Where(sq.Eq{"deleted_at": nil}).
 		Where(sq.Eq{"event_id": eventId})
+	if len(imgIds) > 0 {
+		query = query.Where(sq.Eq{"id": imgIds})
+	}
 
 	stmt, params, err := query.ToSql()
 	if err != nil {
@@ -281,4 +285,160 @@ func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Man
 	}
 
 	return mans, nil
+}
+
+func RemoveEventCategories(ctx context.Context, db DBTX, eventId int64) error {
+	query := qb.Delete("event_categories").Where(sq.Eq{"event_id": eventId})
+
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, params...)
+	return err
+}
+
+func RemoveManagers(ctx context.Context, db DBTX, eventId int64, managerIds ...int64) error {
+	if len(managerIds) == 0 {
+		return nil
+	}
+	query := qb.Update("event_managers").
+		Set("deleted_at", time.Now()).
+		Set("updated_at", time.Now()).
+		Where(sq.Eq{"event_id": eventId}).
+		Where(sq.Eq{"id": managerIds})
+
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, params...)
+	return err
+}
+
+func RemoveLocations(ctx context.Context, db DBTX, eventId int64, locationIds ...int64) error {
+	if len(locationIds) == 0 {
+		return nil
+	}
+
+	query := qb.Update("event_locations").
+		Set("deleted_at", time.Now()).
+		Set("updated_at", time.Now()).
+		Where(sq.Eq{"event_id": eventId}).
+		Where(sq.Eq{"id": locationIds})
+
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, params...)
+	return err
+}
+
+func RemoveImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64) error {
+	if len(imgIds) == 0 {
+		return nil
+	}
+
+	query := qb.Delete("event_images").
+		Where(sq.Eq{"event_id": eventId}).
+		Where(sq.Eq{"id": imgIds})
+
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, params...)
+	return err
+}
+
+func UpdateLocation(ctx context.Context, db DBTX, eventId, locationId int64, location models.Location) error {
+	m := map[string]interface{}{}
+
+	if location.Address != nil {
+		m["address"] = *location.Address
+	}
+
+	if location.Longitude != nil {
+		m["longitude"] = *location.Longitude
+	}
+
+	if location.Longitude != nil {
+		m["latitude"] = *location.Latitude
+	}
+
+	if location.Seats != nil {
+		m["seats"] = *location.Seats
+	}
+
+	if location.StartsAt != nil {
+		m["starts_at"] = *location.StartsAt
+	}
+
+	if location.EndsAt != nil {
+		m["ends_at"] = *location.EndsAt
+	}
+
+	query := qb.Update("event").SetMap(m).
+		Where(sq.Eq{"id": location}).
+		Where(sq.Eq{"event_id": eventId}).
+		Where(sq.Eq{"deleted_at": nil})
+
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, params...)
+	return err
+
+}
+
+func UpdateMainEvent(ctx context.Context, db DBTX, event models.Event) error {
+	m := map[string]interface{}{}
+	if event.Title != nil {
+		m["title"] = *event.Title
+	}
+	if event.Description != nil {
+		m["description"] = *event.Description
+	}
+	if event.MaxAge != nil {
+		m["age_max"] = *event.MaxAge
+	}
+	if event.MinAge != nil {
+		m["age_min"] = *event.MinAge
+	}
+
+	query := qb.Update("event").SetMap(m).
+		Where(sq.Eq{"id": event.ID}).
+		Where(sq.Eq{"deleted_at": nil})
+
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, params...)
+	return err
+}
+
+func UpdateManager(ctx context.Context, db DBTX, eventId, managerId int, role models.Role) error {
+
+	query := qb.Update("event_managers").
+		Set("role_id", role.ID).
+		Where(sq.Eq{"eventId": eventId}).
+		Where(sq.Eq{"id": managerId})
+
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, params...)
+	return err
+
 }

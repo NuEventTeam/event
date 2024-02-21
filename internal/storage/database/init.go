@@ -22,7 +22,20 @@ type DBTX interface {
 }
 
 type Database struct {
-	DB *pgxpool.Pool
+	db *pgxpool.Pool
+}
+
+func (d *Database) GetDb() DBTX {
+	return d.db
+}
+
+func (d *Database) BeginTx(ctx context.Context) (pgx.Tx, error) {
+	tx, err := d.db.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
+	if err != nil {
+		return nil, err
+	}
+	txObj := tx
+	return txObj, nil
 }
 
 func NewDatabase(ctx context.Context, cfg config.Database) *Database {
@@ -57,6 +70,6 @@ func NewDatabase(ctx context.Context, cfg config.Database) *Database {
 	}
 
 	return &Database{
-		DB: pgxPool,
+		db: pgxPool,
 	}
 }

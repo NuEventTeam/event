@@ -6,7 +6,6 @@ import (
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/internal/storage/cache"
 	"github.com/NuEventTeam/events/internal/storage/database"
-	"github.com/jackc/pgx/v5"
 	"log"
 )
 
@@ -23,7 +22,7 @@ func NewEventSvc(db *database.Database, cache *cache.Cache) *EventSvc {
 }
 
 func (e *EventSvc) CreateEvent(ctx context.Context, event models.Event) (int64, error) {
-	tx, err := e.db.DB.BeginTx(ctx, pgx.TxOptions{IsoLevel: pgx.ReadCommitted})
+	tx, err := e.db.BeginTx(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -35,7 +34,7 @@ func (e *EventSvc) CreateEvent(ctx context.Context, event models.Event) (int64, 
 		return 0, err
 	}
 	log.Println(eventId)
-	err = database.AddEventCategories(ctx, tx, eventId, event.Categories...)
+	err = database.AddEventCategories(ctx, tx, eventId, event.CategoryIds...)
 	if err != nil {
 		return 0, err
 	}
@@ -79,46 +78,100 @@ func (e *EventSvc) CreateEvent(ctx context.Context, event models.Event) (int64, 
 }
 
 func (e *EventSvc) GetEventByID(ctx context.Context, eventId int64) (*models.Event, error) {
-	event, err := database.GetEventByID(ctx, e.db.DB, eventId)
+	event, err := database.GetEventByID(ctx, e.db.GetDb(), eventId)
 	if err != nil {
 		return nil, err
 	}
 	if event == nil {
 		return nil, fmt.Errorf("event not found")
 	}
-	log.Println(event)
-	categories, err := database.GetEventCategories(ctx, e.db.DB, eventId)
-	if err != nil {
-		return nil, err
-	}
-	log.Println(categories)
 
-	locations, err := database.GetEventLocations(ctx, e.db.DB, eventId)
+	categories, err := database.GetEventCategories(ctx, e.db.GetDb(), eventId)
 	if err != nil {
 		return nil, err
 	}
-	log.Println(locations)
 
-	images, err := database.GetEventImages(ctx, e.db.DB, eventId)
+	locations, err := database.GetEventLocations(ctx, e.db.GetDb(), eventId)
 	if err != nil {
 		return nil, err
 	}
-	log.Println(images)
 
-	managers, err := database.GetEventManagers(ctx, e.db.DB, eventId)
+	images, err := database.GetEventImages(ctx, e.db.GetDb(), eventId)
 	if err != nil {
 		return nil, err
 	}
-	log.Println(managers)
+
+	managers, err := database.GetEventManagers(ctx, e.db.GetDb(), eventId)
+	if err != nil {
+		return nil, err
+	}
 
 	event.Categories = categories
 	event.Locations = locations
 	event.Images = images
 	event.Managers = managers
+
 	return event, nil
 }
 
 func (e *EventSvc) GetCategoriesByID(ctx context.Context, ids []int64) ([]models.Category, error) {
-	categories, err := database.GetCategories(ctx, e.db.DB, database.GetCategoriesParams{IDs: ids})
+	categories, err := database.GetCategories(ctx, e.db.GetDb(), database.GetCategoriesParams{IDs: ids})
 	return categories, err
+}
+
+func (e *EventSvc) UpdateEvent(ctx context.Context, event models.Event) error {
+	tx, err := e.db.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+
+	err = database.UpdateMainEvent(ctx, tx, event)
+	if err != nil {
+		return err
+	}
+	if event.Categories != nil {
+		err := database.RemoveEventCategories(ctx, tx, event.ID)
+		if err != nil {
+			return err
+		}
+
+		err = database.AddEventCategories(ctx, tx, event.ID, event.CategoryIds...)
+		if err != nil {
+			return err
+		}
+	}
+	//update location
+	if event.Locations != nil {
+		err := database.UpdateLocation(ctx, tx, event.ID, event.Locations[0].ID, event.Locations[0])
+		if err != nil {
+			return err
+		}
+	}
+
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *EventSvc) RemoveImage(ctx context.Context, eventID int64, imgIds ...int64) ([]string, error) {
+
+	images, err := database.GetEventImages(ctx, e.db.GetDb(), eventID, imgIds...)
+	if err != nil {
+		return nil, err
+	}
+
+	err = database.RemoveImages(ctx, e.db.GetDb(), eventID, imgIds...)
+	if err != nil {
+		return nil, err
+	}
+
+	var keys []string
+
+	for _, i := range images {
+		keys = append(keys, i.Url)
+	}
+
+	return keys, nil
 }
