@@ -10,7 +10,7 @@ type User struct {
 	Firstname    string     `json:"firstname"`
 	Lastname     *string    `json:"lastname"`
 	ProfileImage *string    `json:"profileImage"`
-	DateOfBirth  time.Time  `json:"dateOfBirth"`
+	BirthDate    time.Time  `json:"dateOfBirth"`
 	Preferences  []Category `json:"preferences"`
 }
 
@@ -22,6 +22,7 @@ type Permission struct {
 type Role struct {
 	ID          int64   `json:"id"`
 	Name        string  `json:"name"`
+	EventID     int64   `json:"eventId"`
 	Permissions []int64 `json:"permissions"`
 }
 

@@ -5,35 +5,40 @@ import (
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/internal/services/cdn"
 	event_service "github.com/NuEventTeam/events/internal/services/event"
+	"github.com/NuEventTeam/events/internal/services/users"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/oklog/ulid/v2"
+	"log"
 	"path"
 	"strconv"
 	"time"
 )
 
 type Handler struct {
+	userSvc   *users.UserService
 	eventSvc  *event_service.EventSvc
 	cdnSvc    *cdn.CdnSvc
 	JWTSecret string
 }
 
 func NewHttpHandler(
-	svc *event_service.EventSvc,
+	eventSvc *event_service.EventSvc,
 	cdn *cdn.CdnSvc,
+	userSvc *users.UserService,
 	jwtSecret string,
 ) *Handler {
 
 	return &Handler{
-		eventSvc:  svc,
+		eventSvc:  eventSvc,
 		cdnSvc:    cdn,
+		userSvc:   userSvc,
 		JWTSecret: jwtSecret,
 	}
 }
 
-func (h *Handler) SetUpRoutes(router *fiber.App) {
+func (h *Handler) SetUpEventRoutes(router *fiber.App) {
 	apiV1 := router.Group("/api/v1")
 
 	apiV1.Get("/categories", h.getCategories)
@@ -116,6 +121,7 @@ func (h *Handler) createEvent(ctx *fiber.Ctx) error {
 
 	var imgs []cdn.Content
 	var imgUrls []models.Image
+	log.Println(len(form.File["images"]))
 	for _, f := range form.File["images"] {
 		file, err := f.Open()
 		if err != nil {
@@ -125,11 +131,11 @@ func (h *Handler) createEvent(ctx *fiber.Ctx) error {
 		imgs = append(imgs, cdn.Content{
 			FieldName: "files",
 			Filename:  filename,
-			Reader:    file,
+			Payload:   file,
 			Size:      f.Size,
 		})
 		imgUrls = append(imgUrls, models.Image{
-			Url: filename,
+			Url: fmt.Sprint(userId, "/", filename),
 		})
 	}
 
@@ -157,7 +163,7 @@ func (h *Handler) createEvent(ctx *fiber.Ctx) error {
 			User: models.User{UserID: userId},
 			Role: models.Role{
 				Name:        pkg.AuthorTitle,
-				Permissions: []int64{pkg.PermissionRead, pkg.PermissionVerify, pkg.PermissionVerify}},
+				Permissions: []int64{pkg.PermissionRead, pkg.PermissionVerify, pkg.PermissionUpdate}},
 		}},
 		Attendees: nil,
 	}
@@ -302,7 +308,7 @@ func (h *Handler) addImage(ctx *fiber.Ctx) error {
 		imgs = append(imgs, cdn.Content{
 			FieldName: "files",
 			Filename:  filename,
-			Reader:    file,
+			Payload:   file,
 			Size:      f.Size,
 		})
 		imgUrls = append(imgUrls, models.Image{

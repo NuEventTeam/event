@@ -11,7 +11,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"net/url"
-	"path/filepath"
 	"time"
 )
 
@@ -19,7 +18,7 @@ type Content struct {
 	FieldName string
 	Filename  string
 	Size      int64
-	Reader    io.Reader
+	Payload   io.Reader
 }
 
 type CdnSvc struct {
@@ -56,6 +55,7 @@ func (c *CdnSvc) Upload(namespace any, files ...Content) error {
 
 	err = sonic.ConfigFastest.Unmarshal(data, resp)
 	if err != nil {
+		log.Println(err)
 		return fmt.Errorf("something went wrong during upload")
 	}
 
@@ -84,7 +84,7 @@ func sendFormDataRequest(url string, files ...Content) ([]byte, error) {
 	)
 
 	for _, f := range files {
-		if f.Reader == nil {
+		if f.Payload == nil {
 			err := w.WriteField(f.FieldName, f.Filename)
 			if err != nil {
 				return nil, err
@@ -92,8 +92,8 @@ func sendFormDataRequest(url string, files ...Content) ([]byte, error) {
 			continue
 		}
 
-		part, err := w.CreateFormFile(f.FieldName, filepath.Base(f.Filename))
-		_, err = io.CopyN(part, f.Reader, f.Size)
+		part, err := w.CreateFormFile(f.FieldName, f.Filename)
+		_, err = io.CopyN(part, f.Payload, f.Size)
 		if err != nil {
 			return nil, err
 		}

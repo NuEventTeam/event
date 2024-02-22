@@ -51,7 +51,7 @@ func (e *EventSvc) CreateEvent(ctx context.Context, event models.Event) (int64, 
 
 	for _, m := range event.Managers {
 		log.Println(m.User.UserID)
-
+		m.Role.EventID = eventId
 		roleId, err := database.CreateRole(ctx, tx, m.Role)
 		if err != nil {
 			return 0, err

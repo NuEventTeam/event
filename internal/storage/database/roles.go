@@ -8,7 +8,7 @@ import (
 )
 
 func CreateRole(ctx context.Context, db DBTX, role models.Role) (int64, error) {
-	query := qb.Insert("event_roles").Columns("name").Values(role.Name).Suffix("returning id")
+	query := qb.Insert("event_roles").Columns("name", "event_id").Values(role.Name, role.EventID).Suffix("returning id")
 
 	stmt, parms, err := query.ToSql()
 	if err != nil {

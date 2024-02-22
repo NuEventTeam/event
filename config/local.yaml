@@ -6,14 +6,15 @@ jwt:
   secret: "my-32-character-ultra-secure-and-ultra-long-secret"
   expiry: 30m
 database:
-  host: "event-db"
+  host: "localhost"
   user: "event"
   password: "event"
   name: "event"
-  port: 5432
+  port: 5433
 cache:
   prefix: "event"
   port: "6379"
-  host: "keydb"
+  host: "localhost"
   password: "auth"
   index: 1
+

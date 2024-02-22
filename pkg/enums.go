@@ -11,3 +11,5 @@ const (
 	PermissionUpdate = 2
 	PermissionVerify = 3
 )
+
+const MinCategories = 3

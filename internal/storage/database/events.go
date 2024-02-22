@@ -5,6 +5,7 @@ import (
 	"errors"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/models"
+	"github.com/NuEventTeam/events/pkg"
 	"github.com/jackc/pgx/v5"
 	"log"
 	"strconv"
@@ -202,7 +203,7 @@ func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64
 		if err != nil {
 			return nil, err
 		}
-
+		i.Url = pkg.CDNBaseUrl + "/get/" + i.Url
 		imgs = append(imgs, i)
 	}
 	return imgs, nil
@@ -244,6 +245,9 @@ func GetEventCategories(ctx context.Context, db DBTX, eventId int64) ([]models.C
 func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Manager, error) {
 	query := qb.Select(
 		"users.username",
+		"users.firstname",
+		"users.lastname",
+		"users.profile_image",
 		"event_managers.user_id",
 		"event_managers.role_id",
 		"event_roles.name",
@@ -271,16 +275,20 @@ func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Man
 	for rows.Next() {
 		var m models.Manager
 
-		err := rows.Scan(&m.User.Username, &m.User.UserID, &m.Role.ID, &m.Role.Name)
+		err := rows.Scan(&m.User.Username, &m.User.Firstname, &m.User.Lastname, &m.User.ProfileImage, &m.User.UserID, &m.Role.ID, &m.Role.Name)
 		if err != nil {
 			return nil, err
+		}
+		if m.User.ProfileImage != nil {
+			*m.User.ProfileImage = pkg.CDNBaseUrl + "/get/" + *m.User.ProfileImage
 		}
 
 		m.Role.Permissions, err = GetRolePermissions(ctx, db, m.Role.ID)
 		if err != nil {
 			return nil, err
 		}
-
+		m.Role.EventID = eventId
+		m.EventId = eventId
 		mans = append(mans, m)
 	}
 
