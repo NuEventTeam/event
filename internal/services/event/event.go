@@ -2,11 +2,16 @@ package event_service
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/internal/storage/cache"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"log"
+)
+
+var (
+	ErrNoPermision = errors.New("user has no permission")
 )
 
 type EventSvc struct {
@@ -130,7 +135,7 @@ func (e *EventSvc) UpdateEvent(ctx context.Context, event models.Event) error {
 	if err != nil {
 		return err
 	}
-	if event.Categories != nil {
+	if len(event.CategoryIds) > 0 {
 		err := database.RemoveEventCategories(ctx, tx, event.ID)
 		if err != nil {
 			return err
@@ -142,8 +147,15 @@ func (e *EventSvc) UpdateEvent(ctx context.Context, event models.Event) error {
 		}
 	}
 	//update location
-	if event.Locations != nil {
+	if len(event.Locations) > 0 {
 		err := database.UpdateLocation(ctx, tx, event.ID, event.Locations[0].ID, event.Locations[0])
+		if err != nil {
+			return err
+		}
+	}
+
+	if len(event.Images) > 0 {
+		err := database.AddEventImage(ctx, tx, event.ID, event.Images...)
 		if err != nil {
 			return err
 		}
@@ -175,3 +187,74 @@ func (e *EventSvc) RemoveImage(ctx context.Context, eventID int64, imgIds ...int
 
 	return keys, nil
 }
+
+func (e *EventSvc) CheckPermission(ctx context.Context, eventId, userId int64, permissionIds ...int64) error {
+	ok, err := database.CheckPermission(ctx, e.db.GetDb(), eventId, userId, permissionIds...)
+	if err != nil {
+		return err
+	}
+	if !ok {
+		return ErrNoPermision
+	}
+	return nil
+}
+
+func (e *EventSvc) AddFollower(ctx context.Context, eventId, followerId int64) error {
+	tx, err := e.db.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+
+	defer tx.Rollback(ctx)
+	err = database.AddEventFollower(ctx, tx, eventId, followerId)
+	if err != nil {
+		return err
+	}
+	err = database.UpdateEventFollowerCount(ctx, tx, eventId, 1)
+	if err != nil {
+		return err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *EventSvc) RemoveFollower(ctx context.Context, eventId, followerId int64) error {
+	tx, err := e.db.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	err = database.RemoveEventFollower(ctx, tx, eventId, followerId)
+	if err != nil {
+		return err
+	}
+	err = database.UpdateEventFollowerCount(ctx, tx, eventId, -1)
+	if err != nil {
+		return err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+//TODO finish later
+//func (e *EventSvc) BanFollower(ctx context.Context, eventId, followerId int64) error {
+//	tx, err := e.db.BeginTx(ctx)
+//	if err != nil {
+//		return err
+//	}
+//	defer tx.Rollback(ctx)
+//	err = database.BanEventFollower(ctx, tx, eventId, followerId)
+//	if err != nil {
+//		return err
+//	}
+//	//Todo check if it was user follower ad decrease follower count
+//
+//	if err := tx.Commit(ctx); err != nil {
+//		return err
+//	}
+//	return nil
+//}

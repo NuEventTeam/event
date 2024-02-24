@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/models"
 )
@@ -177,6 +178,62 @@ func RemoveUserPreference(ctx context.Context, db DBTX, userID int64, categoryID
 	query := qb.Delete("user_preferences").
 		Where(sq.Eq{"user_id": userID}).
 		Where(sq.Eq{"category_id": categoryID})
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func AddUserFollower(ctx context.Context, db DBTX, userId, followerId int64) error {
+	query := qb.Insert("user_followers").
+		Columns("user_id", "follower_id").
+		Values(userId, followerId)
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func RemoveUserFollower(ctx context.Context, db DBTX, userId, followerId int64) error {
+	query := qb.Delete("user_followers").
+		Where(sq.Eq{"user_id": userId}).
+		Where(sq.Eq{"follower_id": followerId})
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func BanUserFollower(ctx context.Context, db DBTX, userId, followerId int64) error {
+	query := qb.Insert("banned_user_followers").
+		Columns("user_id", "follower_id").
+		Values(userId, followerId)
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func UpdateUserFollowerCount(ctx context.Context, db DBTX, userId, by int64) error {
+	query := qb.Update("users").
+		Set("follower_count", fmt.Sprintf("follower_count %d", by)).
+		Where(sq.Eq{"user_id": userId})
 
 	stmt, args, err := query.ToSql()
 	if err != nil {

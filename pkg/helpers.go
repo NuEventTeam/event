@@ -87,7 +87,7 @@ func ParseJWT(jwtStr string, secret string) (int64, error) {
 		return 0, jwt.ErrTokenInvalidClaims
 	}
 
-	userID := int64(claims["user_id"].(float64))
+	userID := int64(claims["userId"].(float64))
 
 	return userID, nil
 }

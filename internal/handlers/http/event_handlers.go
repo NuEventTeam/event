@@ -47,7 +47,52 @@ func (h *Handler) SetUpEventRoutes(router *fiber.App) {
 
 	apiV1.Get("/event/show/:eventId", h.getEventByID)
 
-	apiV1.Put("/event/posts/:eventId", MustAuth(h.JWTSecret), h.updateEvent)
+	apiV1.Put("/event/posts/:eventId",
+		MustAuth(h.JWTSecret),
+		h.HasPermission(pkg.PermissionUpdate),
+		h.updateEvent,
+	)
+
+	apiV1.Put("/event/image/:eventId",
+		MustAuth(h.JWTSecret),
+		h.HasPermission(pkg.PermissionUpdate),
+		h.addImage,
+	)
+
+	apiV1.Put("/event/fellowship/follow/:eventId",
+		MustAuth(h.JWTSecret),
+		h.followEvent)
+
+	apiV1.Put("/event/fellowship/unfollow/:eventId",
+		MustAuth(h.JWTSecret),
+		h.unfollowEvent)
+}
+func (h *Handler) followEvent(ctx *fiber.Ctx) error {
+	userId := ctx.Locals("userId").(int64)
+	eventId, err := strconv.ParseInt(ctx.Params("eventId"), 10, 64)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusBadRequest, "invalid event id", err)
+	}
+
+	err = h.eventSvc.AddFollower(ctx.Context(), eventId, userId)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusBadRequest, "something went wrong", err)
+	}
+	return pkg.Success(ctx, nil)
+}
+
+func (h *Handler) unfollowEvent(ctx *fiber.Ctx) error {
+	userId := ctx.Locals("userId").(int64)
+	eventId, err := strconv.ParseInt(ctx.Params("eventId"), 10, 64)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusBadRequest, "invalid event id", err)
+	}
+
+	err = h.eventSvc.RemoveFollower(ctx.Context(), eventId, userId)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusBadRequest, "something went wrong", err)
+	}
+	return pkg.Success(ctx, nil)
 }
 
 type CreateEventRequest struct {
@@ -87,7 +132,7 @@ func (h *Handler) createEvent(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	userId := ctx.Locals("user_id").(int64)
+	userId := ctx.Locals("userId").(int64)
 
 	if len(form.Value["payload"]) == 0 {
 		return pkg.Error(ctx, fiber.StatusBadRequest, "request does not contain payload field", fmt.Errorf("payload missing"))
@@ -139,11 +184,6 @@ func (h *Handler) createEvent(ctx *fiber.Ctx) error {
 		})
 	}
 
-	err = h.cdnSvc.Upload(userId, imgs...)
-	if err != nil {
-		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
-	}
-
 	e := models.Event{
 		Title:       &request.Title,
 		Description: &request.Description,
@@ -168,7 +208,11 @@ func (h *Handler) createEvent(ctx *fiber.Ctx) error {
 		Attendees: nil,
 	}
 	eventID, err := h.eventSvc.CreateEvent(ctx.Context(), e)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
+	}
 
+	err = h.cdnSvc.Upload(userId, imgs...)
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 	}
@@ -226,7 +270,7 @@ type UpdateEventRequest struct {
 		StartsAt  *string  `json:"startsAt"`
 		Seats     *int64   `json:"seats"`
 		EndsAt    *string  `json:"endsAt"`
-	}
+	} `json:"location"`
 	Categories []int64 `json:"categories"`
 	AgeMax     *int64  `json:"ageMax"`
 	AgeMin     *int64  `json:"ageMin"`
@@ -295,7 +339,7 @@ func (h *Handler) addImage(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	userId := ctx.Locals("user_id").(int64)
+	userId := ctx.Locals("userId").(int64)
 
 	var imgs []cdn.Content
 	var imgUrls []models.Image
@@ -312,15 +356,11 @@ func (h *Handler) addImage(ctx *fiber.Ctx) error {
 			Size:      f.Size,
 		})
 		imgUrls = append(imgUrls, models.Image{
-			Url: filename,
+			Url: fmt.Sprint(userId, "/", filename),
 		})
 	}
 
-	err = h.cdnSvc.Upload(userId, imgs...)
-	if err != nil {
-		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
-	}
-
+	log.Println(imgUrls)
 	eventId, err := strconv.ParseInt(ctx.Params("eventId"), 10, 64)
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusBadRequest, "invalid eventID", err)
@@ -329,6 +369,11 @@ func (h *Handler) addImage(ctx *fiber.Ctx) error {
 	err = h.eventSvc.UpdateEvent(ctx.Context(), models.Event{ID: eventId, Images: imgUrls})
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusBadRequest, "could not add images", err)
+	}
+
+	err = h.cdnSvc.Upload(userId, imgs...)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 	}
 
 	return pkg.Success(ctx, fiber.StatusOK)

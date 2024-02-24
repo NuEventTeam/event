@@ -127,3 +127,60 @@ func (e *UserService) GetCategoriesByID(ctx context.Context, ids []int64) ([]mod
 	categories, err := database.GetCategories(ctx, e.db.GetDb(), database.GetCategoriesParams{IDs: ids})
 	return categories, err
 }
+
+func (e *UserService) AddFollower(ctx context.Context, userId, followerId int64) error {
+	tx, err := e.db.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	err = database.AddUserFollower(ctx, tx, userId, followerId)
+	if err != nil {
+		return err
+	}
+	err = database.UpdateUserFollowerCount(ctx, tx, userId, 1)
+	if err != nil {
+		return err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *UserService) RemoveFollower(ctx context.Context, userId, followerId int64) error {
+	tx, err := e.db.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	err = database.RemoveUserFollower(ctx, tx, userId, followerId)
+	if err != nil {
+		return err
+	}
+	err = database.UpdateUserFollowerCount(ctx, tx, userId, -1)
+	if err != nil {
+		return err
+	}
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (e *UserService) BanFollower(ctx context.Context, userId, followerId int64) error {
+	tx, err := e.db.BeginTx(ctx)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback(ctx)
+	err = database.BanUserFollower(ctx, tx, userId, followerId)
+	if err != nil {
+		return err
+	}
+	//TODO check if exist then remove from follower and deacrease followers count
+	if err := tx.Commit(ctx); err != nil {
+		return err
+	}
+	return nil
+}

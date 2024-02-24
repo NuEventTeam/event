@@ -18,12 +18,47 @@ func (h *Handler) SetUpUserRoutes(router *fiber.App) {
 	apiV1 := router.Group("/api/v1")
 
 	apiV1.Get("/categories", h.getCategories)
+
 	apiV1.Post("/create/user", MustAuth(h.JWTSecret), h.createUser)
+
 	apiV1.Post("/create/mobile/user", MustAuth(h.JWTSecret), h.createMobileUser)
 
 	apiV1.Get("/user/:username", h.getUser)
 
 	apiV1.Get("/check-username/:username", MustAuth(h.JWTSecret), h.checkUsername)
+
+	apiV1.Post("/users/friendship/follow/:userId", MustAuth(h.JWTSecret), h.followUser)
+
+	apiV1.Post("/users/friendship/unfollow/:userId", MustAuth(h.JWTSecret), h.unfollowUser)
+
+}
+
+func (h *Handler) followUser(ctx *fiber.Ctx) error {
+	followerId := ctx.Locals("userId").(int64)
+	userId, err := strconv.ParseInt(ctx.Params("userId"), 10, 64)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusBadRequest, "invalid follower id", err)
+	}
+
+	err = h.userSvc.AddFollower(ctx.Context(), userId, followerId)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusInternalServerError, "something went wrong", err)
+	}
+	return pkg.Success(ctx, nil)
+}
+
+func (h *Handler) unfollowUser(ctx *fiber.Ctx) error {
+	followerId := ctx.Locals("userId").(int64)
+	userId, err := strconv.ParseInt(ctx.Params("userId"), 10, 64)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusBadRequest, "invalid follower id", err)
+	}
+
+	err = h.userSvc.RemoveFollower(ctx.Context(), userId, followerId)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusInternalServerError, "something went wrong", err)
+	}
+	return pkg.Success(ctx, nil)
 }
 
 func (h *Handler) getUser(ctx *fiber.Ctx) error {
@@ -57,7 +92,7 @@ func (h *Handler) createMobileUser(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	userId := ctx.Locals("user_id").(int64)
+	userId := ctx.Locals("userId").(int64)
 
 	var request MobileUser
 	if len(form.Value["payload"]) == 0 {
@@ -149,7 +184,7 @@ func (h *Handler) createUser(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	userId := ctx.Locals("user_id").(int64)
+	userId := ctx.Locals("userId").(int64)
 
 	exists, err := h.userSvc.CheckUsername(ctx.Context(), form.Value["username"][0])
 	if err != nil {

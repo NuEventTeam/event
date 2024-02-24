@@ -3,6 +3,7 @@ package database
 import (
 	"context"
 	"errors"
+	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/pkg"
@@ -391,8 +392,8 @@ func UpdateLocation(ctx context.Context, db DBTX, eventId, locationId int64, loc
 		m["ends_at"] = *location.EndsAt
 	}
 
-	query := qb.Update("event").SetMap(m).
-		Where(sq.Eq{"id": location}).
+	query := qb.Update("event_locations").SetMap(m).
+		Where(sq.Eq{"id": location.ID}).
 		Where(sq.Eq{"event_id": eventId}).
 		Where(sq.Eq{"deleted_at": nil})
 
@@ -420,8 +421,11 @@ func UpdateMainEvent(ctx context.Context, db DBTX, event models.Event) error {
 	if event.MinAge != nil {
 		m["age_min"] = *event.MinAge
 	}
+	if len(m) == 0 {
+		return nil
+	}
 
-	query := qb.Update("event").SetMap(m).
+	query := qb.Update("events").SetMap(m).
 		Where(sq.Eq{"id": event.ID}).
 		Where(sq.Eq{"deleted_at": nil})
 
@@ -449,4 +453,95 @@ func UpdateManager(ctx context.Context, db DBTX, eventId, managerId int, role mo
 	_, err = db.Exec(ctx, stmt, params...)
 	return err
 
+}
+
+func CheckPermission(ctx context.Context, db DBTX, eventID, userID int64, permissionIds ...int64) (bool, error) {
+
+	if len(permissionIds) == 0 {
+		return false, nil
+	}
+
+	query := qb.Select("count(*)").
+		From("event_managers").
+		InnerJoin("event_roles er on er.id = event_managers.role_id").
+		InnerJoin("event_role_permissions erp on er.id = erp.role_id").
+		Where(sq.Eq{"event_managers.user_id": userID}).
+		Where(sq.Eq{"er.event_id": eventID}).
+		Where(sq.Eq{"erp.permission_id": permissionIds})
+
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return false, err
+	}
+
+	rows, err := db.Query(ctx, stmt, params...)
+	if err != nil {
+		return false, err
+	}
+	defer rows.Close()
+	var count int
+	for rows.Next() {
+		err := rows.Scan(&count)
+		if err != nil {
+			return false, err
+		}
+	}
+
+	return len(permissionIds) == count, nil
+}
+
+func AddEventFollower(ctx context.Context, db DBTX, eventId, followerId int64) error {
+	query := qb.Insert("event_followers").
+		Columns("event_id", "follower_id").
+		Values(eventId, followerId)
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func RemoveEventFollower(ctx context.Context, db DBTX, eventId, followerId int64) error {
+	query := qb.Delete("event_followers").
+		Where(sq.Eq{"event_id": eventId}).
+		Where(sq.Eq{"follower_id": followerId})
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func BanEventFollower(ctx context.Context, db DBTX, eventId, followerId int64) error {
+	query := qb.Insert("banned_event_followers").
+		Columns("event_id", "follower_id").
+		Values(eventId, followerId)
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func UpdateEventFollowerCount(ctx context.Context, db DBTX, userId, by int64) error {
+	query := qb.Update("events").
+		Set("attendees_count", fmt.Sprintf("attendees_count %d", by)).
+		Where(sq.Eq{"user_id": userId})
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
 }
