@@ -41,15 +41,16 @@ type Manager struct {
 }
 
 type Location struct {
-	ID        int64      `json:"id"`
-	EventID   int64      `json:"eventID"`
-	Address   *string    `json:"address"`
-	Longitude *float64   `json:"longitude"`
-	Latitude  *float64   `json:"latitude"`
-	StartsAt  *time.Time `json:"startsAt"`
-	EndsAt    *time.Time `json:"endsAt"`
-	Seats     *int64     `json:"seats"`
-	Archived  bool       `json:"archived"`
+	ID             int64      `json:"id"`
+	EventID        int64      `json:"eventID"`
+	Address        *string    `json:"address"`
+	Longitude      *float64   `json:"longitude"`
+	Latitude       *float64   `json:"latitude"`
+	StartsAt       *time.Time `json:"startsAt"`
+	EndsAt         *time.Time `json:"endsAt"`
+	Seats          *int64     `json:"seats"`
+	AttendeesCount *int64     `json:"attendeesCount"`
+	Archived       bool       `json:"archived"`
 }
 
 type Image struct {

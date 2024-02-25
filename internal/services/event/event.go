@@ -13,7 +13,7 @@ import (
 )
 
 var (
-	ErrNoPermision = errors.New("user has no permission")
+	ErrNoPermission = errors.New("user has no permission")
 )
 
 type EventSvc struct {
@@ -131,6 +131,34 @@ func (e *EventSvc) GetEventByID(ctx context.Context, eventId int64) (*models.Eve
 	return event, nil
 }
 
+func (e *EventSvc) CheckEventStatus(ctx context.Context, eventId int64) error {
+	event, err := database.GetEventByID(ctx, e.db.GetDb(), eventId)
+	if err != nil {
+		return err
+	}
+
+	if event == nil {
+		return fmt.Errorf("event not exists")
+	}
+	location, err := database.GetEventLocations(ctx, e.db.GetDb(), eventId)
+	if err != nil {
+		return err
+	}
+
+	if location[0].Seats != nil {
+		if *location[0].Seats == *location[0].AttendeesCount {
+			return fmt.Errorf("event is full")
+		}
+	}
+
+	if *event.Status != pkg.EventStatusCreated {
+		return fmt.Errorf("event cannot be foullowed, status:%d", *event.Status)
+	}
+
+	return nil
+
+}
+
 func (e *EventSvc) GetCategoriesByID(ctx context.Context, ids []int64) ([]models.Category, error) {
 	categories, err := database.GetCategories(ctx, e.db.GetDb(), database.GetCategoriesParams{IDs: ids})
 	return categories, err
@@ -231,22 +259,25 @@ func (e *EventSvc) CheckPermission(ctx context.Context, eventId, userId int64, p
 		return err
 	}
 	if !ok {
-		return ErrNoPermision
+		return ErrNoPermission
 	}
 	return nil
 }
 
 func (e *EventSvc) AddFollower(ctx context.Context, eventId, followerId int64) error {
+
 	tx, err := e.db.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
 
 	defer tx.Rollback(ctx)
+
 	err = database.AddEventFollower(ctx, tx, eventId, followerId)
 	if err != nil {
 		return err
 	}
+
 	err = database.UpdateEventFollowerCount(ctx, tx, eventId, 1)
 	if err != nil {
 		return err

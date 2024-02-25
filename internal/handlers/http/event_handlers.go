@@ -74,6 +74,10 @@ func (h *Handler) followEvent(ctx *fiber.Ctx) error {
 		return pkg.Error(ctx, fiber.StatusBadRequest, "invalid event id", err)
 	}
 
+	err = h.eventSvc.CheckEventStatus(ctx.Context(), eventId)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
+	}
 	err = h.eventSvc.AddFollower(ctx.Context(), eventId, userId)
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusBadRequest, "something went wrong", err)

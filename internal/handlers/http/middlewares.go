@@ -40,7 +40,7 @@ func (h *Handler) HasPermission(permission int64) fiber.Handler {
 
 		err = h.eventSvc.CheckPermission(ctx.Context(), eventId, userId, permission)
 		if err != nil {
-			if errors.Is(err, event_service.ErrNoPermision) {
+			if errors.Is(err, event_service.ErrNoPermission) {
 				return pkg.Error(ctx, fiber.StatusForbidden, "has no permission")
 			}
 			return pkg.Error(ctx, fiber.StatusInternalServerError, "something went wrong", err)
