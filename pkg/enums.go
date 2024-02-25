@@ -13,3 +13,15 @@ const (
 )
 
 const MinCategories = 3
+
+const (
+	EventStatusCreated  = 1
+	EventStatusOngoing  = 2
+	EventStatusCanceled = 3
+	EventStatusFinished = 4
+)
+
+const (
+	EventNamespace = "event"
+	UserNamespace  = "user"
+)

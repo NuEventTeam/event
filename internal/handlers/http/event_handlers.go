@@ -164,8 +164,8 @@ func (h *Handler) createEvent(ctx *fiber.Ctx) error {
 		return pkg.Error(ctx, fiber.StatusBadRequest, "improper ending time")
 	}
 
-	var imgs []cdn.Content
-	var imgUrls []models.Image
+	var uploadContent []cdn.Content
+
 	log.Println(len(form.File["images"]))
 	for _, f := range form.File["images"] {
 		file, err := f.Open()
@@ -173,14 +173,11 @@ func (h *Handler) createEvent(ctx *fiber.Ctx) error {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "cannot open file", err)
 		}
 		filename := ulid.Make().String() + path.Ext(f.Filename)
-		imgs = append(imgs, cdn.Content{
+		uploadContent = append(uploadContent, cdn.Content{
 			FieldName: "files",
 			Filename:  filename,
 			Payload:   file,
 			Size:      f.Size,
-		})
-		imgUrls = append(imgUrls, models.Image{
-			Url: fmt.Sprint(userId, "/", filename),
 		})
 	}
 
@@ -189,7 +186,7 @@ func (h *Handler) createEvent(ctx *fiber.Ctx) error {
 		Description: &request.Description,
 		MaxAge:      request.MaxAge,
 		MinAge:      request.MinAge,
-		Images:      imgUrls,
+		Images:      make([]models.Image, len(uploadContent)),
 		CategoryIds: request.Categories,
 		Locations: []models.Location{{
 			Address:   &request.Address,
@@ -205,14 +202,10 @@ func (h *Handler) createEvent(ctx *fiber.Ctx) error {
 				Name:        pkg.AuthorTitle,
 				Permissions: []int64{pkg.PermissionRead, pkg.PermissionVerify, pkg.PermissionUpdate}},
 		}},
-		Attendees: nil,
+		Attendees:    nil,
+		ImageContent: uploadContent,
 	}
 	eventID, err := h.eventSvc.CreateEvent(ctx.Context(), e)
-	if err != nil {
-		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
-	}
-
-	err = h.cdnSvc.Upload(userId, imgs...)
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 	}
@@ -271,9 +264,11 @@ type UpdateEventRequest struct {
 		Seats     *int64   `json:"seats"`
 		EndsAt    *string  `json:"endsAt"`
 	} `json:"location"`
-	Categories []int64 `json:"categories"`
-	AgeMax     *int64  `json:"ageMax"`
-	AgeMin     *int64  `json:"ageMin"`
+	Categories     []int64 `json:"categories"`
+	AgeMax         *int64  `json:"ageMax"`
+	AgeMin         *int64  `json:"ageMin"`
+	Status         *int    `json:"status"`
+	RemoveImageIds []int64 `json:"removeImages"`
 }
 
 func (h *Handler) updateEvent(ctx *fiber.Ctx) error {
@@ -289,12 +284,14 @@ func (h *Handler) updateEvent(ctx *fiber.Ctx) error {
 	}
 
 	event := models.Event{
-		ID:          int64(eventId),
-		Title:       request.Title,
-		Description: request.Description,
-		MaxAge:      request.AgeMax,
-		MinAge:      request.AgeMin,
-		CategoryIds: request.Categories,
+		ID:              int64(eventId),
+		Title:           request.Title,
+		Description:     request.Description,
+		MaxAge:          request.AgeMax,
+		MinAge:          request.AgeMin,
+		CategoryIds:     request.Categories,
+		Status:          request.Status,
+		RemoveImagesIds: request.RemoveImageIds,
 	}
 
 	if request.Location != nil {
@@ -339,41 +336,34 @@ func (h *Handler) addImage(ctx *fiber.Ctx) error {
 		return err
 	}
 
-	userId := ctx.Locals("userId").(int64)
-
-	var imgs []cdn.Content
-	var imgUrls []models.Image
+	eventId, err := strconv.ParseInt(ctx.Params("eventId"), 10, 64)
+	if err != nil {
+		return pkg.Error(ctx, fiber.StatusBadRequest, "invalid eventID", err)
+	}
+	var (
+		uploadContent []cdn.Content
+		imgUrls       []models.Image
+	)
 	for _, f := range form.File["images"] {
 		file, err := f.Open()
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "cannot open file", err)
 		}
 		filename := ulid.Make().String() + path.Ext(f.Filename)
-		imgs = append(imgs, cdn.Content{
+		uploadContent = append(uploadContent, cdn.Content{
 			FieldName: "files",
 			Filename:  filename,
 			Payload:   file,
 			Size:      f.Size,
 		})
 		imgUrls = append(imgUrls, models.Image{
-			Url: fmt.Sprint(userId, "/", filename),
+			Url: fmt.Sprint(pkg.EventNamespace, eventId, "/", filename),
 		})
 	}
 
-	log.Println(imgUrls)
-	eventId, err := strconv.ParseInt(ctx.Params("eventId"), 10, 64)
-	if err != nil {
-		return pkg.Error(ctx, fiber.StatusBadRequest, "invalid eventID", err)
-	}
-
-	err = h.eventSvc.UpdateEvent(ctx.Context(), models.Event{ID: eventId, Images: imgUrls})
+	err = h.eventSvc.UpdateEvent(ctx.Context(), models.Event{ID: eventId, Images: imgUrls, ImageContent: uploadContent})
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusBadRequest, "could not add images", err)
-	}
-
-	err = h.cdnSvc.Upload(userId, imgs...)
-	if err != nil {
-		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 	}
 
 	return pkg.Success(ctx, fiber.StatusOK)

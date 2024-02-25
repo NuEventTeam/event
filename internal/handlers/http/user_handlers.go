@@ -8,7 +8,6 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/oklog/ulid/v2"
-	"log"
 	"path"
 	"strconv"
 	"time"
@@ -133,9 +132,8 @@ func (h *Handler) createMobileUser(ctx *fiber.Ctx) error {
 			Payload:   file,
 			Size:      f.Size,
 		}
-		str := fmt.Sprint(userId, "/", filename)
+		str := fmt.Sprint(pkg.UserNamespace, "/", userId, "/", filename)
 		profileImage = &str
-		log.Println(f.Filename)
 		break
 	}
 
@@ -230,7 +228,7 @@ func (h *Handler) createUser(ctx *fiber.Ctx) error {
 			Payload:   file,
 			Size:      f.Size,
 		}
-		str := fmt.Sprint(userId, "/", filename)
+		str := fmt.Sprint(pkg.UserNamespace, "/", userId, "/", filename)
 		profileImage = &str
 		break
 	}

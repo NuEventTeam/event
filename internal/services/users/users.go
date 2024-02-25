@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/NuEventTeam/events/internal/models"
+	"github.com/NuEventTeam/events/internal/services/cdn"
 	"github.com/NuEventTeam/events/internal/storage/cache"
 	"github.com/NuEventTeam/events/internal/storage/database"
 )
@@ -11,12 +12,14 @@ import (
 type UserService struct {
 	db    *database.Database
 	cache *cache.Cache
+	cdn   *cdn.CdnSvc
 }
 
-func NewEventSvc(db *database.Database, cache *cache.Cache) *UserService {
+func NewEventSvc(db *database.Database, cache *cache.Cache, cdn *cdn.CdnSvc) *UserService {
 	return &UserService{
 		db:    db,
 		cache: cache,
+		cdn:   cdn,
 	}
 }
 func (e *UserService) GetUserById(ctx context.Context, userId int64) (models.User, error) {

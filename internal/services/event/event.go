@@ -5,8 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"github.com/NuEventTeam/events/internal/models"
+	"github.com/NuEventTeam/events/internal/services/cdn"
 	"github.com/NuEventTeam/events/internal/storage/cache"
 	"github.com/NuEventTeam/events/internal/storage/database"
+	"github.com/NuEventTeam/events/pkg"
 	"log"
 )
 
@@ -17,12 +19,14 @@ var (
 type EventSvc struct {
 	db    *database.Database
 	cache *cache.Cache
+	cdn   *cdn.CdnSvc
 }
 
-func NewEventSvc(db *database.Database, cache *cache.Cache) *EventSvc {
+func NewEventSvc(db *database.Database, cache *cache.Cache, cdn *cdn.CdnSvc) *EventSvc {
 	return &EventSvc{
 		db:    db,
 		cache: cache,
+		cdn:   cdn,
 	}
 }
 
@@ -44,11 +48,19 @@ func (e *EventSvc) CreateEvent(ctx context.Context, event models.Event) (int64, 
 		return 0, err
 	}
 
-	err = database.AddEventImage(ctx, tx, eventId, event.Images...)
+	err = e.cdn.Upload(fmt.Sprint(pkg.EventNamespace, "/", eventId), event.ImageContent...)
 	if err != nil {
 		return 0, err
 	}
 
+	for i, c := range event.ImageContent {
+		event.Images[i].Url = fmt.Sprint(pkg.EventNamespace, "/", eventId, "/", c.Filename)
+	}
+
+	err = database.AddEventImage(ctx, tx, eventId, event.Images...)
+	if err != nil {
+		return 0, err
+	}
 	err = database.AddEventLocations(ctx, tx, eventId, event.Locations...)
 	if err != nil {
 		return 0, err
@@ -135,6 +147,26 @@ func (e *EventSvc) UpdateEvent(ctx context.Context, event models.Event) error {
 	if err != nil {
 		return err
 	}
+
+	if len(event.RemoveImagesIds) > 0 {
+		imgs, err := database.GetEventImages(ctx, tx, event.ID, event.ImageIds...)
+		if err != nil {
+			return err
+		}
+
+		err = database.RemoveImages(ctx, tx, event.ID, event.ImageIds...)
+		if err != nil {
+			return err
+		}
+
+		urls := make([]string, len(imgs))
+		for _, i := range imgs {
+			urls = append(urls, i.Url)
+		}
+
+		e.cdn.Delete(urls...)
+	}
+
 	if len(event.CategoryIds) > 0 {
 		err := database.RemoveEventCategories(ctx, tx, event.ID)
 		if err != nil {
@@ -146,7 +178,7 @@ func (e *EventSvc) UpdateEvent(ctx context.Context, event models.Event) error {
 			return err
 		}
 	}
-	//update location
+
 	if len(event.Locations) > 0 {
 		err := database.UpdateLocation(ctx, tx, event.ID, event.Locations[0].ID, event.Locations[0])
 		if err != nil {
@@ -155,10 +187,15 @@ func (e *EventSvc) UpdateEvent(ctx context.Context, event models.Event) error {
 	}
 
 	if len(event.Images) > 0 {
+		err = e.cdn.Upload(ctx, event.ImageContent...)
+		if err != nil {
+			return err
+		}
 		err := database.AddEventImage(ctx, tx, event.ID, event.Images...)
 		if err != nil {
 			return err
 		}
+
 	}
 
 	if err := tx.Commit(ctx); err != nil {

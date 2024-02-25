@@ -1,6 +1,9 @@
 package models
 
-import "time"
+import (
+	"github.com/NuEventTeam/events/internal/services/cdn"
+	"time"
+)
 
 type User struct {
 	ID           int64      `json:"id"`
@@ -57,16 +60,20 @@ type Image struct {
 }
 
 type Event struct {
-	ID          int64      `json:"id"`
-	Title       *string    `json:"title"`
-	Description *string    `json:"description"`
-	MaxAge      *int64     `json:"maxAge"`
-	MinAge      *int64     `json:"minAge"`
-	Images      []Image    `json:"images"`
-	CreatedAt   time.Time  `json:"created_at"`
-	Categories  []Category `json:"categories"`
-	CategoryIds []int64    `json:"-"`
-	Locations   []Location `json:"locations"`
-	Managers    []Manager  `json:"managers"`
-	Attendees   []User     `json:"-"`
+	ID              int64         `json:"id"`
+	Title           *string       `json:"title"`
+	Description     *string       `json:"description"`
+	Status          *int          `json:"status"`
+	MaxAge          *int64        `json:"maxAge"`
+	MinAge          *int64        `json:"minAge"`
+	RemoveImagesIds []int64       `json:"removeImagesIds"`
+	ImageContent    []cdn.Content `json:"-"`
+	Images          []Image       `json:"images"`
+	ImageIds        []int64       `json:"imageIds"`
+	CreatedAt       time.Time     `json:"created_at"`
+	Categories      []Category    `json:"categories"`
+	CategoryIds     []int64       `json:"-"`
+	Locations       []Location    `json:"locations"`
+	Managers        []Manager     `json:"managers"`
+	Attendees       []User        `json:"-"`
 }

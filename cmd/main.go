@@ -25,11 +25,11 @@ func main() {
 
 	cache := keydb.New(context.Background(), cfg.Cache)
 
-	eventSvc := event_service.NewEventSvc(db, cache)
-
-	userSvc := users.NewEventSvc(db, cache)
-
 	cdnService := cdn.New(pkg.CDNBaseUrl)
+
+	userSvc := users.NewEventSvc(db, cache, cdnService)
+
+	eventSvc := event_service.NewEventSvc(db, cache, cdnService)
 
 	httpHandler := http.NewHttpHandler(eventSvc, cdnService, userSvc, cfg.JWT.Secret)
 

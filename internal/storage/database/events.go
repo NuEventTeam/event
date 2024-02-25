@@ -121,7 +121,7 @@ func AddEventImage(ctx context.Context, db DBTX, eventID int64, images ...models
 }
 
 func GetEventByID(ctx context.Context, db DBTX, eventID int64) (*models.Event, error) {
-	query := qb.Select("id", "title", "description", "age_min", "age_max", "created_at").
+	query := qb.Select("id", "title", "description", "age_min", "age_max", "status", "created_at").
 		From("events").Where(sq.Eq{"id": eventID})
 
 	stmt, params, err := query.ToSql()
@@ -131,7 +131,7 @@ func GetEventByID(ctx context.Context, db DBTX, eventID int64) (*models.Event, e
 	log.Println(stmt)
 	event := &models.Event{}
 
-	err = db.QueryRow(ctx, stmt, params...).Scan(&event.ID, &event.Title, &event.Description, &event.MinAge, &event.MaxAge, &event.CreatedAt)
+	err = db.QueryRow(ctx, stmt, params...).Scan(&event.ID, &event.Title, &event.Description, &event.MinAge, &event.MaxAge, &event.Status, &event.CreatedAt)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -420,6 +420,10 @@ func UpdateMainEvent(ctx context.Context, db DBTX, event models.Event) error {
 	}
 	if event.MinAge != nil {
 		m["age_min"] = *event.MinAge
+	}
+
+	if event.Status != nil {
+		m["status"] = *event.Status
 	}
 	if len(m) == 0 {
 		return nil
