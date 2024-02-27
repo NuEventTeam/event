@@ -10,7 +10,7 @@ database:
   user: "event"
   password: "event"
   name: "event"
-  port: 5433
+  port: 5432
 cache:
   prefix: "event"
   port: "6379"
