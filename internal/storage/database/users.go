@@ -2,6 +2,7 @@ package database
 
 import (
 	"context"
+	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/models"
 )
@@ -9,7 +10,7 @@ import (
 func CreateUser(ctx context.Context, db DBTX, user models.User) (int64, error) {
 	query := qb.Insert("users").
 		Columns("user_id", "phone", "username", "lastname", "firstname", "profile_image", "birthdate").
-		Values(user.UserID, user.Phone, user.Username, user.Lastname, user.Firstname, user.ProfileImage, user.DateOfBirth).
+		Values(user.UserID, user.Phone, user.Username, user.Lastname, user.Firstname, user.ProfileImage, user.BirthDate).
 		Suffix("returning id")
 
 	stmt, args, err := query.ToSql()
@@ -22,6 +23,28 @@ func CreateUser(ctx context.Context, db DBTX, user models.User) (int64, error) {
 	err = db.QueryRow(ctx, stmt, args...).Scan(&id)
 
 	return id, err
+}
+
+func CheckUserExists(ctx context.Context, db DBTX, userID int64) (bool, error) {
+	query := qb.Select("count(*)").
+		From("users").
+		Where(sq.Eq{"user_id": userID}).
+		Limit(1)
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return false, err
+	}
+
+	var count int
+
+	err = db.QueryRow(ctx, stmt, args...).Scan(&count)
+
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
 }
 
 func CheckUsername(ctx context.Context, db DBTX, username string) (bool, error) {
@@ -43,7 +66,7 @@ func CheckUsername(ctx context.Context, db DBTX, username string) (bool, error) 
 		return false, err
 	}
 
-	return count != 0, nil
+	return count > 0, nil
 }
 
 func UpdateUser(ctx context.Context, db DBTX, userID int64, params map[string]interface{}) error {
@@ -86,7 +109,7 @@ func GetUser(ctx context.Context, db DBTX, args GetUserArgss) (models.User, erro
 	var user models.User
 
 	err = db.QueryRow(ctx, stmt, params...).Scan(&user.ID, &user.UserID, &user.Phone, &user.Username, &user.Lastname,
-		&user.Firstname, &user.DateOfBirth, &user.ProfileImage)
+		&user.Firstname, &user.BirthDate, &user.ProfileImage)
 
 	return user, err
 
@@ -131,7 +154,9 @@ func GetUserPreferences(ctx context.Context, db DBTX, userID int64) ([]models.Ca
 }
 
 func AddUserPreference(ctx context.Context, db DBTX, userID int64, category ...models.Category) error {
-
+	if len(category) == 0 {
+		return nil
+	}
 	query := qb.Insert("user_preferences").
 		Columns("user_id", "category_id")
 
@@ -153,6 +178,62 @@ func RemoveUserPreference(ctx context.Context, db DBTX, userID int64, categoryID
 	query := qb.Delete("user_preferences").
 		Where(sq.Eq{"user_id": userID}).
 		Where(sq.Eq{"category_id": categoryID})
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func AddUserFollower(ctx context.Context, db DBTX, userId, followerId int64) error {
+	query := qb.Insert("user_followers").
+		Columns("user_id", "follower_id").
+		Values(userId, followerId)
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func RemoveUserFollower(ctx context.Context, db DBTX, userId, followerId int64) error {
+	query := qb.Delete("user_followers").
+		Where(sq.Eq{"user_id": userId}).
+		Where(sq.Eq{"follower_id": followerId})
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func BanUserFollower(ctx context.Context, db DBTX, userId, followerId int64) error {
+	query := qb.Insert("banned_user_followers").
+		Columns("user_id", "follower_id").
+		Values(userId, followerId)
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func UpdateUserFollowerCount(ctx context.Context, db DBTX, userId, by int64) error {
+	query := qb.Update("users").
+		Set("follower_count", fmt.Sprintf("follower_count %d", by)).
+		Where(sq.Eq{"user_id": userId})
 
 	stmt, args, err := query.ToSql()
 	if err != nil {

@@ -4,10 +4,13 @@ import (
 	"context"
 	"github.com/NuEventTeam/events/internal/app"
 	"github.com/NuEventTeam/events/internal/config"
-	"github.com/NuEventTeam/events/internal/handlers"
+	"github.com/NuEventTeam/events/internal/handlers/http"
+	"github.com/NuEventTeam/events/internal/services/cdn"
 	event_service "github.com/NuEventTeam/events/internal/services/event"
+	"github.com/NuEventTeam/events/internal/services/users"
 	keydb "github.com/NuEventTeam/events/internal/storage/cache"
 	"github.com/NuEventTeam/events/internal/storage/database"
+	"github.com/NuEventTeam/events/pkg"
 	"log"
 	"os"
 	"os/signal"
@@ -15,22 +18,22 @@ import (
 )
 
 func main() {
-	//config
+
 	cfg := config.MustLoad()
-
-	logger := log.New(os.Stdout, "INFO", log.Ldate|log.Ltime|log.Llongfile)
-
-	logger.Println("starting application")
 
 	db := database.NewDatabase(context.Background(), cfg.Database)
 
 	cache := keydb.New(context.Background(), cfg.Cache)
 
-	eventSvc := event_service.NewEventSvc(db, cache)
+	cdnService := cdn.New(pkg.CDNBaseUrl)
 
-	grpc := handlers.NewGRPCHandler(db, cache, eventSvc)
+	userSvc := users.NewEventSvc(db, cache, cdnService)
 
-	application := app.New(logger, cfg.GRPC.Port, grpc)
+	eventSvc := event_service.NewEventSvc(db, cache, cdnService)
+
+	httpHandler := http.NewHttpHandler(eventSvc, cdnService, userSvc, cfg.JWT.Secret)
+
+	application := app.New(cfg.Http.Port, httpHandler)
 
 	go application.MustRun()
 
@@ -42,5 +45,5 @@ func main() {
 
 	application.Stop()
 
-	logger.Println("application stopped")
+	log.Println("application stopped")
 }
