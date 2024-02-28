@@ -66,7 +66,40 @@ func (h *Handler) SetUpEventRoutes(router *fiber.App) {
 	apiV1.Put("/event/fellowship/unfollow/:eventId",
 		MustAuth(h.JWTSecret),
 		h.unfollowEvent)
+
+	apiV1.Post("/event/search", h.search)
 }
+
+type SearchRequest struct {
+	Categories []int64 `json:"categories"`
+	Text       *string `json:"text"`
+	IsUser     *bool   `json:"isUser"`
+	NearMe     *bool   `json:"nearMe"`
+	Location   *struct {
+		Lg float64 `json:"lg"`
+		Lt float64 `json:"lt"`
+	} `json:"location"`
+}
+
+func (h *Handler) search(ctx *fiber.Ctx) error {
+	var request SearchRequest
+
+	if err := ctx.BodyParser(&request); err != nil {
+		return pkg.Error(ctx, fiber.StatusBadRequest, "cannot parse json", err)
+	}
+
+	if request.IsUser != nil {
+
+	}
+
+	if request.NearMe != nil {
+		if request.Location == nil {
+			return pkg.Error(ctx, fiber.StatusNotFound, "")
+		}
+	}
+
+}
+
 func (h *Handler) followEvent(ctx *fiber.Ctx) error {
 	userId := ctx.Locals("userId").(int64)
 	eventId, err := strconv.ParseInt(ctx.Params("eventId"), 10, 64)
