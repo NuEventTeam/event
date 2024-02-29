@@ -2,6 +2,7 @@ package event
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/internal/services/cdn"
@@ -13,6 +14,8 @@ import (
 	"log"
 	"path"
 )
+
+func RegisterRouter()
 
 type CreateEventRequest struct {
 	Title       string        `json:"title"`
@@ -50,85 +53,87 @@ func (e *EventSvc) createEventHttp(ctx *fiber.Ctx) error {
 		return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 	}
 
-	tx, err := e.db.BeginTx(ctx.Context())
-	if err != nil {
-		return err
-	}
-
-	defer tx.Rollback(ctx.Context())
-
-	eventId, err := database.CreateEvent(ctx.Context(), tx, event)
-	if err != nil {
-		return err
-	}
-	err = database.AddEventCategories(ctx.Context(), tx, eventId, request.Categories...)
-	if err != nil {
-		return err
-	}
-
-	var uploadContent []cdn.Content
-	images := make([]models.Image, len(form.File["images"]))
+	uploadContent := make([]cdn.Content, len(form.File["images"]))
 	for i, f := range form.File["images"] {
 		file, err := f.Open()
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "cannot open file", err)
 		}
 		filename := ulid.Make().String() + path.Ext(f.Filename)
-		uploadContent = append(uploadContent, cdn.Content{
+		uploadContent[i] = cdn.Content{
 			FieldName: "files",
 			Filename:  filename,
 			Payload:   file,
 			Size:      f.Size,
-		})
-		event.Images[i].Url = fmt.Sprint(pkg.EventNamespace, "/", eventId, "/", filename)
-
-	}
-	err = e.cdn.Upload(fmt.Sprint(pkg.EventNamespace, "/", eventId), event.ImageContent...)
-	if err != nil {
-		return err
+		}
 	}
 
-	err = database.AddEventImage(ctx.Context(), tx, eventId, images...)
-	if err != nil {
-		return err
-	}
-	err = database.AddEventLocations(ctx.Context(), tx, eventId, event.Locations...)
-	if err != nil {
-		return err
-	}
+	err = func(ctx context.Context) error {
+		tx, err := e.db.BeginTx(ctx)
+		if err != nil {
+			return err
+		}
+		defer tx.Rollback(ctx)
+		runner := qb.RunWith(&sql.DB{})
 
-
-User: models.User{UserID: userId},
-		m.Role.EventID = eventId
-		roleId, err := database.CreateRole(ctx.Context(), tx, models.Role{
-			Name:        pkg.AuthorTitle,
-			Permissions: []int64{pkg.PermissionRead, pkg.PermissionVerify, pkg.PermissionUpdate}})
+		err = runner.Insert("events").
+			Columns("title", "description", "age_min", "age_max").
+			Values(request.Title, request.Description, request.MinAge, request.MaxAge).
+			Suffix("RETURNING id").QueryRow().Scan()
+		if err != nil {
+			return err
+		}
+		var eventId int64
+		err = tx.QueryRow(ctx, stmt, args...).Scan(&eventId)
 		if err != nil {
 			return err
 		}
 
-		m.Role.ID = roleId
+		query := qb.Insert("event_categories").
+			Columns("event_id", "category_id")
 
-		err = database.AddRolePermissions(ctx.Context(), tx, m.Role)
+		for _, id := range request.Categories {
+			query = query.Values(eventId, id)
+		}
+
+		stmt, args, err = query.ToSql()
 		if err != nil {
 			return err
 		}
 
-		err = database.AddEventManager(ctx.Context(), tx, eventId, m)
+		_, err = tx.Exec(ctx, stmt, args...)
 		if err != nil {
 			return err
 		}
-	}
 
-	if err := tx.Commit(ctx.Context()); err != nil {
-		return err
-	}
-	eventID, err := e.CreateEvent(ctx.Context(), event)
-	if err != nil {
-		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
-	}
+		err = e.cdn.Upload(fmt.Sprint(pkg.EventNamespace, "/", eventId), uploadContent...)
+		if err != nil {
+			return err
+		}
 
-	return pkg.Success(ctx, fiber.Map{"event_id": eventID})
+		query = qb.Insert("event_images").
+			Columns("event_id", "url")
+		for _, upl := range uploadContent {
+			query = query.Values(eventId, pkg.EventNamespace+"/"+upl.Filename)
+		}
+
+		stmt, args, err = query.ToSql()
+		if err != nil {
+			return err
+		}
+
+		_, err = tx.Exec(ctx, stmt, args...)
+		if err != nil {
+			return err
+		}
+
+		if err := tx.Commit(ctx); err != nil {
+			return err
+		}
+		return nil
+
+	}(ctx.Context())
+	return nil
 }
 
 func (e *EventSvc) CreateEvent(ctx context.Context, event models.Event) (int64, error) {
@@ -144,10 +149,6 @@ func (e *EventSvc) CreateEvent(ctx context.Context, event models.Event) (int64, 
 		return 0, err
 	}
 	log.Println(eventId)
-	err = database.AddEventCategories(ctx, tx, eventId, event.CategoryIds...)
-	if err != nil {
-		return 0, err
-	}
 
 	err = e.cdn.Upload(fmt.Sprint(pkg.EventNamespace, "/", eventId), event.ImageContent...)
 	if err != nil {

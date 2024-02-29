@@ -2,10 +2,13 @@ package event
 
 import (
 	"errors"
+	"github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/services/cdn"
 	"github.com/NuEventTeam/events/internal/storage/cache"
 	"github.com/NuEventTeam/events/internal/storage/database"
 )
+
+var qb = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
 var (
 	ErrNoPermission = errors.New("user has no permission")

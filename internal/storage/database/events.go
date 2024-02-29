@@ -97,8 +97,8 @@ func AddEventLocations(ctx context.Context, db DBTX, eventID int64, locations ..
 
 }
 
-func AddEventImage(ctx context.Context, db DBTX, eventID int64, images ...models.Image) error {
-	if len(images) == 0 {
+func AddEventImage(ctx context.Context, db DBTX, eventID int64, urls ...string) error {
+	if len(urls) == 0 {
 		return nil
 	}
 
