@@ -10,7 +10,6 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/oklog/ulid/v2"
-	"log"
 	"path"
 	"strconv"
 	"time"
@@ -170,7 +169,6 @@ func (h *Handler) createEvent(ctx *fiber.Ctx) error {
 
 	var uploadContent []cdn.Content
 
-	log.Println(len(form.File["images"]))
 	for _, f := range form.File["images"] {
 		file, err := f.Open()
 		if err != nil {

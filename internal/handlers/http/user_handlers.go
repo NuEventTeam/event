@@ -122,7 +122,6 @@ func (h *Handler) createMobileUser(ctx *fiber.Ctx) error {
 	}
 	var imgs cdn.Content
 	var profileImage *string
-	log.Println(len(form.File["images"]))
 	for _, f := range form.File["images"] {
 		file, err := f.Open()
 		if err != nil {
@@ -136,11 +135,9 @@ func (h *Handler) createMobileUser(ctx *fiber.Ctx) error {
 			Payload:   file,
 			Size:      f.Size,
 		}
-		log.Println(imgs)
 		profileImage = &str
 		break
 	}
-	log.Println(imgs)
 	err = h.cdnSvc.Upload(fmt.Sprintf(pkg.UserNamespace, "/", userId), imgs)
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)

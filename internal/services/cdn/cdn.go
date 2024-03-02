@@ -46,8 +46,6 @@ func (c *CdnSvc) Upload(namespace any, files ...Content) error {
 	query.Add("height", "500")
 	postUrl.RawQuery = query.Encode()
 
-	log.Println(files)
-
 	data, err := sendFormDataRequest(postUrl.String(), files...)
 	if err != nil {
 		return err
