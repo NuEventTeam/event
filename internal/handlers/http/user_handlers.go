@@ -122,6 +122,7 @@ func (h *Handler) createMobileUser(ctx *fiber.Ctx) error {
 	}
 	var imgs cdn.Content
 	var profileImage *string
+	log.Println(len(form.File["images"]))
 	for _, f := range form.File["images"] {
 		file, err := f.Open()
 		if err != nil {
