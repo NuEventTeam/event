@@ -138,7 +138,7 @@ func (h *Handler) createMobileUser(ctx *fiber.Ctx) error {
 		profileImage = &str
 		break
 	}
-	err = h.cdnSvc.Upload(fmt.Sprintf(pkg.UserNamespace, "/", userId), imgs)
+	err = h.cdnSvc.Upload(fmt.Sprint(pkg.UserNamespace, "/", userId), imgs)
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 	}
@@ -148,7 +148,6 @@ func (h *Handler) createMobileUser(ctx *fiber.Ctx) error {
 	birthDate, err := time.Parse(time.DateOnly, request.BirthDate)
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
-
 	}
 
 	var categoryIds []models.Category
@@ -173,7 +172,6 @@ func (h *Handler) createMobileUser(ctx *fiber.Ctx) error {
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 	}
-
 	return pkg.Success(ctx, fiber.Map{"username": request.Username})
 }
 
