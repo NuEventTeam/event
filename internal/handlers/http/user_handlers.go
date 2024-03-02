@@ -67,9 +67,10 @@ func (h *Handler) getUser(ctx *fiber.Ctx) error {
 		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 	}
 
-	profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
-
-	user.ProfileImage = &profileImgUrl
+	if user.ProfileImage != nil {
+		profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
+		user.ProfileImage = &profileImgUrl
+	}
 
 	return pkg.Success(ctx, user)
 }
@@ -222,18 +223,18 @@ func (h *Handler) createUser(ctx *fiber.Ctx) error {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "cannot open file", err)
 		}
 		filename := ulid.Make().String() + path.Ext(f.Filename)
+		str := fmt.Sprint(pkg.UserNamespace, "/", userId, "/", filename)
 		imgs = cdn.Content{
 			FieldName: "files",
 			Filename:  filename,
 			Payload:   file,
 			Size:      f.Size,
 		}
-		str := fmt.Sprint(pkg.UserNamespace, "/", userId, "/", filename)
 		profileImage = &str
 		break
 	}
 
-	err = h.cdnSvc.Upload(userId, imgs)
+	err = h.cdnSvc.Upload(fmt.Sprintf(pkg.UserNamespace, "/", userId), imgs)
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 	}
