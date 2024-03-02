@@ -8,6 +8,7 @@ import (
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/oklog/ulid/v2"
+	"log"
 	"path"
 	"strconv"
 	"time"
@@ -127,18 +128,19 @@ func (h *Handler) createMobileUser(ctx *fiber.Ctx) error {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "cannot open file", err)
 		}
 		filename := ulid.Make().String() + path.Ext(f.Filename)
+		str := fmt.Sprint(pkg.UserNamespace, "/", userId, "/", filename)
 		imgs = cdn.Content{
 			FieldName: "files",
 			Filename:  filename,
 			Payload:   file,
 			Size:      f.Size,
 		}
-		str := fmt.Sprint(pkg.UserNamespace, "/", userId, "/", filename)
+		log.Println(imgs)
 		profileImage = &str
 		break
 	}
-
-	err = h.cdnSvc.Upload(userId, imgs)
+	log.Println(imgs)
+	err = h.cdnSvc.Upload(fmt.Sprintf(pkg.UserNamespace, "/", userId), imgs)
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 	}
@@ -230,10 +232,11 @@ func (h *Handler) createUser(ctx *fiber.Ctx) error {
 			Payload:   file,
 			Size:      f.Size,
 		}
+		log.Println(imgs)
 		profileImage = &str
 		break
 	}
-
+	log.Println(imgs)
 	err = h.cdnSvc.Upload(fmt.Sprintf(pkg.UserNamespace, "/", userId), imgs)
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
