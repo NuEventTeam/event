@@ -44,8 +44,9 @@ type Cache struct {
 	Index    int    `yaml:"index"`
 }
 
-func MustLoad() *Config {
-	path := "./config/local.yaml"
+var CDNBaseUrl string
+
+func MustLoad(path string) *Config {
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		panic("config file does not exists: " + path)
@@ -55,6 +56,11 @@ func MustLoad() *Config {
 	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
 		panic(err)
 	}
+	if cfg.Env == "local" {
+		CDNBaseUrl = "http://localhost:8003"
+	} else if cfg.Env == "dev" {
+		CDNBaseUrl = "http://64.23.188.226:8003"
 
+	}
 	return &cfg
 }

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/NuEventTeam/events/internal/config"
 	"github.com/NuEventTeam/events/internal/models"
-	"github.com/NuEventTeam/events/pkg"
 	"github.com/jackc/pgx/v5"
 	"log"
 	"strconv"
@@ -204,7 +204,7 @@ func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64
 		if err != nil {
 			return nil, err
 		}
-		i.Url = pkg.CDNBaseUrl + "/get/" + i.Url
+		i.Url = config.CDNBaseUrl + "/get/" + i.Url
 		imgs = append(imgs, i)
 	}
 	return imgs, nil
@@ -281,7 +281,7 @@ func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Man
 			return nil, err
 		}
 		if m.User.ProfileImage != nil {
-			*m.User.ProfileImage = pkg.CDNBaseUrl + "/get/" + *m.User.ProfileImage
+			*m.User.ProfileImage = config.CDNBaseUrl + "/get/" + *m.User.ProfileImage
 		}
 
 		m.Role.Permissions, err = GetRolePermissions(ctx, db, m.Role.ID)

@@ -1,7 +1,5 @@
 package pkg
 
-const CDNBaseUrl = "http://cdn:8003"
-
 const (
 	AuthorTitle = "Author"
 )

@@ -2,6 +2,7 @@ package http
 
 import (
 	"fmt"
+	"github.com/NuEventTeam/events/internal/config"
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/internal/services/cdn"
 	"github.com/NuEventTeam/events/pkg"
@@ -69,7 +70,7 @@ func (h *Handler) getUser(ctx *fiber.Ctx) error {
 	}
 
 	if user.ProfileImage != nil {
-		profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
+		profileImgUrl := fmt.Sprint(config.CDNBaseUrl, "/get/", *user.ProfileImage)
 		user.ProfileImage = &profileImgUrl
 	}
 
@@ -233,7 +234,7 @@ func (h *Handler) createUser(ctx *fiber.Ctx) error {
 		break
 	}
 	log.Println(imgs)
-	err = h.cdnSvc.Upload(fmt.Sprintf(pkg.UserNamespace, "/", userId), imgs)
+	err = h.cdnSvc.Upload(fmt.Sprint(pkg.UserNamespace, "/", userId), imgs)
 	if err != nil {
 		return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 	}
