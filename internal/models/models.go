@@ -1,21 +1,22 @@
 package models
 
 import (
-	"github.com/NuEventTeam/events/internal/services/cdn"
-	"github.com/NuEventTeam/events/pkg"
+	"github.com/NuEventTeam/events/internal/features/assets"
+	"github.com/NuEventTeam/events/pkg/types"
 	"time"
 )
 
 type User struct {
-	ID           int64      `json:"id"`
-	UserID       int64      `json:"userID"`
-	Phone        string     `json:"phone"`
-	Username     string     `json:"username"`
-	Firstname    string     `json:"firstname"`
-	Lastname     *string    `json:"lastname"`
-	ProfileImage *string    `json:"profileImage"`
-	BirthDate    time.Time  `json:"dateOfBirth"`
-	Preferences  []Category `json:"preferences"`
+	ID           int64         `json:"id"`
+	UserID       int64         `json:"userID"`
+	Phone        string        `json:"phone"`
+	Username     string        `json:"username"`
+	Firstname    string        `json:"firstname"`
+	Lastname     *string       `json:"lastname"`
+	Image        *assets.Image `json:"-"`
+	ProfileImage *string       `json:"profileImage"`
+	BirthDate    time.Time     `json:"dateOfBirth"`
+	Preferences  []Category    `json:"preferences"`
 }
 
 type Permission struct {
@@ -42,16 +43,16 @@ type Manager struct {
 }
 
 type Location struct {
-	ID             int64         `json:"id"`
-	EventID        int64         `json:"eventID"`
-	Address        *string       `json:"address"`
-	Longitude      *float64      `json:"longitude"`
-	Latitude       *float64      `json:"latitude"`
-	StartsAt       *pkg.DateTime `json:"startsAt"`
-	EndsAt         *pkg.DateTime `json:"endsAt"`
-	Seats          *int64        `json:"seats"`
-	AttendeesCount *int64        `json:"attendeesCount"`
-	Archived       bool          `json:"archived"`
+	ID             int64           `json:"id"`
+	EventID        int64           `json:"eventID"`
+	Address        *string         `json:"address"`
+	Longitude      *float64        `json:"longitude"`
+	Latitude       *float64        `json:"latitude"`
+	StartsAt       *types.DateTime `json:"startsAt"`
+	EndsAt         *types.DateTime `json:"endsAt"`
+	Seats          *int64          `json:"seats"`
+	AttendeesCount *int64          `json:"attendeesCount"`
+	Archived       bool            `json:"archived"`
 }
 
 type Image struct {
@@ -62,20 +63,19 @@ type Image struct {
 }
 
 type Event struct {
-	ID              int64         `json:"id"`
-	Title           *string       `json:"title"`
-	Description     *string       `json:"description"`
-	Status          *int          `json:"status"`
-	MaxAge          *int64        `json:"maxAge"`
-	MinAge          *int64        `json:"minAge"`
-	RemoveImagesIds []int64       `json:"removeImagesIds"`
-	ImageContent    []cdn.Content `json:"-"`
-	Images          []Image       `json:"images"`
-	ImageIds        []int64       `json:"imageIds"`
-	CreatedAt       time.Time     `json:"created_at"`
-	Categories      []Category    `json:"categories"`
-	CategoryIds     []int64       `json:"-"`
-	Locations       []Location    `json:"locations"`
-	Managers        []Manager     `json:"managers"`
-	Attendees       []User        `json:"-"`
+	ID              int64           `json:"id"`
+	Title           *string         `json:"title"`
+	Description     *string         `json:"description"`
+	Status          *int            `json:"status"`
+	MaxAge          *int64          `json:"maxAge"`
+	MinAge          *int64          `json:"minAge"`
+	RemoveImagesIds []int64         `json:"removeImagesIds"`
+	Images          []*assets.Image `json:"images"`
+	ImageIds        []int64         `json:"imageIds"`
+	CreatedAt       time.Time       `json:"created_at"`
+	Categories      []Category      `json:"categories"`
+	CategoryIds     []int64         `json:"-"`
+	Locations       []Location      `json:"locations"`
+	Managers        []Manager       `json:"managers"`
+	Attendees       []User          `json:"-"`
 }

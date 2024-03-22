@@ -1,4 +1,4 @@
-package http
+package handlers
 
 import (
 	"errors"
@@ -38,7 +38,7 @@ func (h *Handler) HasPermission(permission int64) fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "invalid eventID", err)
 		}
 
-		err = h.eventSvc.CheckPermission(ctx.Context(), eventId, userId, permission)
+		err = h.EventSvc.CheckPermission(ctx.Context(), eventId, userId, permission)
 		if err != nil {
 			if errors.Is(err, event_service.ErrNoPermission) {
 				return pkg.Error(ctx, fiber.StatusForbidden, "has no permission")

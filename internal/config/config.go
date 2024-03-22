@@ -1,8 +1,7 @@
 package config
 
 import (
-	"github.com/ilyakaznacheev/cleanenv"
-	"os"
+
 	"time"
 )
 
@@ -23,6 +22,7 @@ type GRPC struct {
 	Port    int           `yaml:"port"`
 	Timeout time.Duration `yaml:"timeout"`
 }
+
 type Http struct {
 	Port    int           `yaml:"port"`
 	Timeout time.Duration `yaml:"timeout"`
@@ -42,6 +42,13 @@ type Cache struct {
 	Password string `yaml:"password"`
 	Prefix   string `yaml:"prefix"`
 	Index    int    `yaml:"index"`
+}
+
+type CDN struct {
+	KeyID string `yaml:"key_id"`
+	SecretAccessKey string `yaml:"secret_access_key"`
+	Region string `yaml:"region"`
+	BucketName string `yaml:"bucket_name"
 }
 
 func MustLoad() *Config {

@@ -1,4 +1,4 @@
-package event
+package user
 
 import (
 	"errors"
@@ -14,14 +14,14 @@ var (
 	ErrNoPermission = errors.New("user has no permission")
 )
 
-type Event struct {
+type User struct {
 	db     *database.Database
 	cache  *cache.Cache
 	assets *assets.Assets
 }
 
-func NewEventSvc(db *database.Database, cache *cache.Cache, assets *assets.Assets) *Event {
-	return &Event{
+func NewEventSvc(db *database.Database, cache *cache.Cache, assets *assets.Assets) *User {
+	return &User{
 		db:     db,
 		cache:  cache,
 		assets: assets,

@@ -6,10 +6,9 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"log"
-	"time"
 )
 
-func Error(ctx *fiber.Ctx, status int, msg string, err ...error) error {
+func Error(ctx *fiber.Ctx, status int, msg any, err ...error) error {
 
 	log.Printf("%+v", err)
 
@@ -91,31 +90,4 @@ func ParseJWT(jwtStr string, secret string) (int64, error) {
 	userID := int64(claims["userId"].(float64))
 
 	return userID, nil
-}
-
-type DateTime time.Time
-
-func (f DateTime) MarshalJSON() ([]byte, error) {
-	t := time.Time(f)
-	s := t.Format(time.DateTime)
-	b, err := sonic.Marshal(s)
-	if err != nil {
-		return nil, err
-	}
-	return b, nil
-}
-
-func (f *DateTime) UnmarshalJSON(b []byte) error {
-	var s string
-	if err := sonic.Unmarshal(b, &s); err != nil {
-		return err
-	}
-
-	t, err := time.Parse(time.DateTime, s)
-	if err != nil {
-		return err
-	}
-	a := DateTime(t)
-	*f = a
-	return nil
 }

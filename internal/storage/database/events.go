@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
+	"github.com/NuEventTeam/events/internal/features/assets"
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/jackc/pgx/v5"
@@ -97,15 +98,15 @@ func AddEventLocations(ctx context.Context, db DBTX, eventID int64, locations ..
 
 }
 
-func AddEventImage(ctx context.Context, db DBTX, eventID int64, urls ...string) error {
-	if len(urls) == 0 {
+func AddEventImage(ctx context.Context, db DBTX, eventID int64, image ...*assets.Image) error {
+	if len(image) == 0 {
 		return nil
 	}
 
 	query := qb.Insert("event_images").
 		Columns("event_id", "url")
 
-	for _, i := range images {
+	for _, i := range image {
 		query = query.Values(eventID, i.Url)
 	}
 

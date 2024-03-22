@@ -4,10 +4,10 @@ import (
 	"context"
 	"github.com/NuEventTeam/events/internal/app"
 	"github.com/NuEventTeam/events/internal/config"
+	"github.com/NuEventTeam/events/internal/features/event"
+	"github.com/NuEventTeam/events/internal/features/user"
 	"github.com/NuEventTeam/events/internal/handlers/http"
 	"github.com/NuEventTeam/events/internal/services/cdn"
-	event_service "github.com/NuEventTeam/events/internal/services/event"
-	"github.com/NuEventTeam/events/internal/services/users"
 	keydb "github.com/NuEventTeam/events/internal/storage/cache"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
@@ -27,9 +27,9 @@ func main() {
 
 	cdnService := cdn.New(pkg.CDNBaseUrl)
 
-	userSvc := users.NewEventSvc(db, cache, cdnService)
+	userSvc := user.NewEventSvc(db, cache, cdnService)
 
-	eventSvc := event_service.NewEventSvc(db, cache, cdnService)
+	eventSvc := event.NewEventSvc(db, cache, cdnService)
 
 	httpHandler := http.NewHttpHandler(eventSvc, cdnService, userSvc, cfg.JWT.Secret)
 

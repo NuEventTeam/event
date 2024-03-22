@@ -17,4 +17,8 @@ cache:
   host: "keydb"
   password: "auth"
   index: 1
-
+cdn:
+  key_id: AKIAVRUVQ7CDRC6V74MW
+  secret_access_key: 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
+  region: us-east-1
+  bucket_name: fast-file-transfer-1
