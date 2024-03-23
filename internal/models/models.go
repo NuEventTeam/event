@@ -11,6 +11,8 @@ type User struct {
 	UserID       int64         `json:"userID"`
 	Phone        string        `json:"phone"`
 	Username     string        `json:"username"`
+	Password     string        `json:"password"`
+	Hash         string        `json:"-"`
 	Firstname    string        `json:"firstname"`
 	Lastname     *string       `json:"lastname"`
 	Image        *assets.Image `json:"-"`
@@ -78,4 +80,20 @@ type Event struct {
 	Locations       []Location      `json:"locations"`
 	Managers        []Manager       `json:"managers"`
 	Attendees       []User          `json:"-"`
+}
+
+type Otp struct {
+	Phone    string `json:"phone" msgpack:"phone"`
+	Code     string `json:"code" msgpack:"code"`
+	OtpType  int32  `json:"otp_type" msgpack:"otp_type"`
+	Duration time.Duration
+}
+
+type Token struct {
+	UserAgent *string
+	Phone     *string
+	UserId    *int64
+	Token     string `json:"token" msgpack:"token"`
+	Type      int32
+	Duration  time.Duration
 }

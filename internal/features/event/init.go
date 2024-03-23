@@ -4,7 +4,6 @@ import (
 	"errors"
 	"github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/features/assets"
-	"github.com/NuEventTeam/events/internal/storage/cache"
 	"github.com/NuEventTeam/events/internal/storage/database"
 )
 
@@ -16,14 +15,12 @@ var (
 
 type Event struct {
 	db     *database.Database
-	cache  *cache.Cache
 	assets *assets.Assets
 }
 
-func NewEventSvc(db *database.Database, cache *cache.Cache, assets *assets.Assets) *Event {
+func NewEventSvc(db *database.Database, assets *assets.Assets) *Event {
 	return &Event{
 		db:     db,
-		cache:  cache,
 		assets: assets,
 	}
 }

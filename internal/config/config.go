@@ -1,7 +1,8 @@
 package config
 
 import (
-
+	"github.com/ilyakaznacheev/cleanenv"
+	"os"
 	"time"
 )
 
@@ -11,6 +12,15 @@ type Config struct {
 	Cache    Cache    `yaml:"cache"`
 	JWT      JWT      `yaml:"jwt"`
 	Http     Http     `yaml:"http"`
+	CDN      CDN      `yaml:"cdn"`
+	SMS      SMS      `yaml:"sms"`
+}
+
+type SMS struct {
+	URL      string `yaml:"url"`
+	Login    string `yaml:"login"`
+	Password string `yaml:"password"`
+	Enabled  bool   `yaml:"enabled"`
 }
 
 type JWT struct {
@@ -45,10 +55,10 @@ type Cache struct {
 }
 
 type CDN struct {
-	KeyID string `yaml:"key_id"`
+	KeyID           string `yaml:"key_id"`
 	SecretAccessKey string `yaml:"secret_access_key"`
-	Region string `yaml:"region"`
-	BucketName string `yaml:"bucket_name"
+	Region          string `yaml:"region"`
+	BucketName      string `yaml:"bucket_name"`
 }
 
 func MustLoad() *Config {

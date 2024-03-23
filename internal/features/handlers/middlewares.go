@@ -3,7 +3,7 @@ package handlers
 import (
 	"errors"
 	"fmt"
-	event_service "github.com/NuEventTeam/events/internal/services/event"
+	"github.com/NuEventTeam/events/internal/features/event"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
@@ -40,7 +40,7 @@ func (h *Handler) HasPermission(permission int64) fiber.Handler {
 
 		err = h.EventSvc.CheckPermission(ctx.Context(), eventId, userId, permission)
 		if err != nil {
-			if errors.Is(err, event_service.ErrNoPermission) {
+			if errors.Is(err, event.ErrNoPermission) {
 				return pkg.Error(ctx, fiber.StatusForbidden, "has no permission")
 			}
 			return pkg.Error(ctx, fiber.StatusInternalServerError, "something went wrong", err)

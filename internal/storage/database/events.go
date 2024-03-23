@@ -175,7 +175,7 @@ func GetEventLocations(ctx context.Context, db DBTX, eventID int64) ([]models.Lo
 	return locs, nil
 }
 
-func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64) ([]models.Image, error) {
+func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64) ([]*assets.Image, error) {
 	query := qb.Select("id", "event_id", "url").
 		From("event_images").
 		Where(sq.Eq{"deleted_at": nil}).
@@ -189,7 +189,7 @@ func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64
 		return nil, err
 	}
 
-	var imgs []models.Image
+	var imgs []*assets.Image
 
 	rows, err := db.Query(ctx, stmt, params...)
 	if err != nil {
@@ -199,14 +199,14 @@ func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64
 	defer rows.Close()
 
 	for rows.Next() {
-		var i models.Image
+		var i assets.Image
 
 		err := rows.Scan(&i.ID, &i.EventID, &i.Url)
 		if err != nil {
 			return nil, err
 		}
 		i.Url = pkg.CDNBaseUrl + "/get/" + i.Url
-		imgs = append(imgs, i)
+		imgs = append(imgs, &i)
 	}
 	return imgs, nil
 }

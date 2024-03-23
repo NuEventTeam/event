@@ -19,7 +19,7 @@ type Assets struct {
 	bucket          string            `json:"bucket,omitempty"`
 }
 
-func NewS3Storage(cfg *config.CDN) *Assets {
+func NewS3Storage(cfg config.CDN) *Assets {
 
 	client := s3.New(s3.Options{
 		Region:      cfg.Region,

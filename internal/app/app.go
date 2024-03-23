@@ -2,7 +2,7 @@ package app
 
 import (
 	"fmt"
-	"github.com/NuEventTeam/events/internal/handlers/http"
+	"github.com/NuEventTeam/events/internal/features/handlers"
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -16,13 +16,14 @@ type App struct {
 
 func New(
 	port int,
-	httpHandler *http.Handler,
+	httpHandler *handlers.Handler,
 ) *App {
 
 	httpServer := newHttpServer()
 
 	httpHandler.SetUpEventRoutes(httpServer)
 	httpHandler.SetUpUserRoutes(httpServer)
+	httpHandler.SetUpAssetsRoutes(httpServer)
 
 	return &App{
 		httpServer: httpServer,
