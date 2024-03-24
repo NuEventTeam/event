@@ -24,6 +24,7 @@ func New(
 	httpHandler.SetUpEventRoutes(httpServer)
 	httpHandler.SetUpUserRoutes(httpServer)
 	httpHandler.SetUpAssetsRoutes(httpServer)
+	httpHandler.SetUpAuthRoutes(httpServer)
 
 	return &App{
 		httpServer: httpServer,
@@ -43,7 +44,7 @@ func newHttpServer() *fiber.App {
 	httpServer := fiber.New(fiber.Config{
 		JSONEncoder: sonic.Marshal,
 		JSONDecoder: sonic.Unmarshal,
-		BodyLimit:   30 * 1024 * 1024,
+		BodyLimit:   1024 * 1024 * 1024,
 	})
 
 	httpServer.Use(cors.New(cors.Config{

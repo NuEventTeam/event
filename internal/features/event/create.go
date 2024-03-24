@@ -14,7 +14,6 @@ import (
 	"log"
 	"path"
 	"sync"
-	"time"
 )
 
 type CreateEventRequest struct {
@@ -27,7 +26,7 @@ type CreateEventRequest struct {
 	Address     string         `json:"address"`
 	Longitude   float64        `json:"lg"`
 	Latitude    float64        `json:"lt"`
-	Date        types.DateTime `json:"date"`
+	Date        types.Date     `json:"date"`
 	StartsAt    types.DateTime `json:"starts_at"`
 	EndsAt      types.DateTime `json:"end_at"`
 	Categories  []int64        `json:"categories"`
@@ -37,25 +36,6 @@ func (c *CreateEventRequest) FromPayload(payload []byte) error {
 	err := sonic.ConfigFastest.Unmarshal([]byte(payload), &c)
 	if err != nil {
 		return err
-	}
-	return nil
-}
-func (c *CreateEventRequest) Validate() []string {
-	m := []string{}
-
-	if c.Date.Before(time.Now()) {
-		m = append(m, "date cannot be set before current date")
-	}
-
-	if c.StartsAt.Before(time.Now().Add(time.Hour * 2)) {
-		m = append(m, "event start time mast be at least 2 hour before creations")
-	}
-
-	if c.EndsAt.Before(time.Time(c.StartsAt)) {
-		m = append(m, "improper ending time")
-	}
-	if len(m) > 0 {
-		return m
 	}
 	return nil
 }
@@ -115,7 +95,7 @@ func (e *Event) CreateEventHandler() fiber.Handler {
 		}
 
 		wg.Wait()
-
+		log.Printf("%+v", images)
 		event := models.Event{
 			Title:       &request.Title,
 			Description: &request.Description,

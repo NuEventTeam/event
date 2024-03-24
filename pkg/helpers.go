@@ -67,7 +67,7 @@ func (r Request) Send() ([]byte, error) {
 	return body, nil
 }
 
-func ParseJWT(jwtStr string, secret string) (int64, error) {
+func ParseJWT(jwtStr string, secret string) (int64, string, error) {
 	token, err := jwt.Parse(jwtStr, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, errors.New("Invalid sign method")
@@ -75,19 +75,18 @@ func ParseJWT(jwtStr string, secret string) (int64, error) {
 		return []byte(secret), nil
 	})
 	if err != nil {
-		return 0, err
+		return 0, "", err
 	}
 
 	if !token.Valid {
-		return 0, jwt.ErrTokenExpired
+		return 0, "", jwt.ErrTokenExpired
 	}
 
 	claims, ok := token.Claims.(jwt.MapClaims)
 	if !ok {
-		return 0, jwt.ErrTokenInvalidClaims
+		return 0, "", jwt.ErrTokenInvalidClaims
 	}
-
 	userID := int64(claims["userId"].(float64))
-
-	return userID, nil
+	userAgent := claims["userAgent"].(string)
+	return userID, userAgent, nil
 }

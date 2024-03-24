@@ -12,8 +12,13 @@ func (a *Auth) LogoutHandler() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 
 		userId := ctx.Locals("userId").(int64)
+		var agent *string
+		if ctx.Locals("userAgent").(string) != "" {
+			t := ctx.Locals("userAgent").(string)
+			agent = &t
+		}
+		err := a.Logout(ctx.Context(), models.Token{UserId: &userId, Type: TokenTypeRefresh, UserAgent: agent})
 
-		err := a.Logout(ctx.Context(), models.Token{UserId: &userId, Type: TokenTypeRefresh})
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "logout failed", err)
 		}

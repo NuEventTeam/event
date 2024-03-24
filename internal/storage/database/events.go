@@ -84,7 +84,7 @@ func AddEventLocations(ctx context.Context, db DBTX, eventID int64, locations ..
 		lg := strconv.FormatFloat(*l.Longitude, 'f', 12, 32)
 		lt := strconv.FormatFloat(*l.Latitude, 'f', 12, 32)
 		log.Println(lg, lt)
-		query = query.Values(eventID, l.Address, lg, lt, l.Seats, l.StartsAt, l.EndsAt)
+		query = query.Values(eventID, l.Address, lg, lt, l.Seats, time.Time(*l.StartsAt), time.Time(*l.EndsAt))
 	}
 
 	stmt, params, err := query.ToSql()
@@ -107,7 +107,7 @@ func AddEventImage(ctx context.Context, db DBTX, eventID int64, image ...*assets
 		Columns("event_id", "url")
 
 	for _, i := range image {
-		query = query.Values(eventID, i.Url)
+		query = query.Values(eventID, i.Filename)
 	}
 
 	stmt, params, err := query.ToSql()
@@ -386,11 +386,11 @@ func UpdateLocation(ctx context.Context, db DBTX, eventId, locationId int64, loc
 	}
 
 	if location.StartsAt != nil {
-		m["starts_at"] = *location.StartsAt
+		m["starts_at"] = time.Time(*location.StartsAt)
 	}
 
 	if location.EndsAt != nil {
-		m["ends_at"] = *location.EndsAt
+		m["ends_at"] = time.Time(*location.EndsAt)
 	}
 
 	query := qb.Update("event_locations").SetMap(m).

@@ -21,11 +21,12 @@ func MustAuth(jwtSecret string) fiber.Handler {
 		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
 			return pkg.Error(ctx, http.StatusUnauthorized, "unauthorized", fmt.Errorf("invalid token"))
 		}
-		userID, err := pkg.ParseJWT(headerParts[1], jwtSecret)
+		userID, userAgent, err := pkg.ParseJWT(headerParts[1], jwtSecret)
 		if err != nil {
 			return pkg.Error(ctx, http.StatusBadRequest, "invalid token", err)
 		}
 		ctx.Locals("userId", userID)
+		ctx.Locals("userAgent", userAgent)
 		return ctx.Next()
 	}
 }

@@ -2,7 +2,7 @@ package handlers
 
 import "github.com/gofiber/fiber/v2"
 
-func (h *Handler) SetUpRoutes(app *fiber.App) {
+func (h *Handler) SetUpAuthRoutes(app *fiber.App) {
 
 	apiV1 := app.Group("/api/v1")
 

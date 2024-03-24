@@ -102,6 +102,7 @@ func (u User) CreateMobileUserHandler() fiber.Handler {
 
 		}
 		err = u.CreateUser(ctx.Context(), models.User{
+			ID:           userId,
 			UserID:       userId,
 			Phone:        request.Phone,
 			Username:     request.Username,
@@ -135,7 +136,7 @@ func (u User) CreateUserHandler() fiber.Handler {
 		}
 
 		if exists {
-			return pkg.Error(ctx, fiber.StatusBadRequest, "user exists")
+			return pkg.Error(ctx, fiber.StatusBadRequest, "username exists")
 		}
 
 		exists, err = u.CheckUserID(ctx.Context(), userId)
@@ -143,8 +144,8 @@ func (u User) CreateUserHandler() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
 
-		if exists {
-			return pkg.Error(ctx, fiber.StatusBadRequest, "username exists")
+		if !exists {
+			return pkg.Error(ctx, fiber.StatusBadRequest, "user does not exists")
 		}
 
 		var categoryIds []models.Category
@@ -181,15 +182,17 @@ func (u User) CreateUserHandler() fiber.Handler {
 				break
 			}
 			image = img
+			break
 
 		}
-
+		log.Println(image)
 		birthDate, err := time.Parse(time.DateOnly, form.Value["birthdate"][0])
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 
 		}
 		err = u.CreateUser(ctx.Context(), models.User{
+			ID:           userId,
 			UserID:       userId,
 			Username:     form.Value["username"][0],
 			ProfileImage: &image.Filename,
@@ -198,6 +201,7 @@ func (u User) CreateUserHandler() fiber.Handler {
 			Firstname:    form.Value["firstname"][0],
 			Lastname:     &form.Value["lastname"][0],
 			Preferences:  categoryIds,
+			Image:        image,
 		})
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
@@ -216,14 +220,14 @@ func (u User) CreateUser(ctx context.Context, user models.User) error {
 
 	defer tx.Rollback(ctx)
 
-	_, err = database.CreateUser(ctx, tx, user)
+	err = database.CreateUser(ctx, tx, user)
 	if err != nil {
 		return err
 	}
 
 	u.assets.Upload(ctx, user.Image)
 
-	err = database.AddUserPreference(ctx, tx, user.UserID, user.Preferences...)
+	err = database.AddUserPreference(ctx, tx, user.ID, user.Preferences...)
 	if err != nil {
 		return err
 	}

@@ -9,28 +9,28 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-func CreateUser(ctx context.Context, db DBTX, user models.User) (int64, error) {
-	query := qb.Insert("users").
-		Columns("user_id", "phone", "username", "lastname", "firstname", "profile_image", "birthdate").
-		Values(user.UserID, user.Phone, user.Username, user.Lastname, user.Firstname, user.ProfileImage, user.BirthDate).
-		Suffix("returning id")
-
+func CreateUser(ctx context.Context, db DBTX, user models.User) error {
+	query := qb.Update("users").
+		Set("username", user.Username).
+		Set("lastname", user.Lastname).
+		Set("firstname", user.Firstname).
+		Set("profile_image", user.ProfileImage).
+		Set("birthdate", user.BirthDate).
+		Where(sq.Eq{"id": user.ID})
 	stmt, args, err := query.ToSql()
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	var id int64
+	_, err = db.Exec(ctx, stmt, args...)
 
-	err = db.QueryRow(ctx, stmt, args...).Scan(&id)
-
-	return id, err
+	return err
 }
 
 func CheckUserExists(ctx context.Context, db DBTX, userID int64) (bool, error) {
 	query := qb.Select("count(*)").
 		From("users").
-		Where(sq.Eq{"user_id": userID}).
+		Where(sq.Eq{"id": userID}).
 		Limit(1)
 
 	stmt, args, err := query.ToSql()
