@@ -58,8 +58,8 @@ func (u User) CreateMobileUserHandler() fiber.Handler {
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
-		if exists {
-			return pkg.Error(ctx, fiber.StatusBadRequest, "user exists")
+		if !exists {
+			return pkg.Error(ctx, fiber.StatusBadRequest, "user does not exists")
 		}
 
 		var image *assets.Image
