@@ -2,33 +2,35 @@ package database
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/models"
+	"github.com/jackc/pgx/v5"
 )
 
-func CreateUser(ctx context.Context, db DBTX, user models.User) (int64, error) {
-	query := qb.Insert("users").
-		Columns("user_id", "phone", "username", "lastname", "firstname", "profile_image", "birthdate").
-		Values(user.UserID, user.Phone, user.Username, user.Lastname, user.Firstname, user.ProfileImage, user.BirthDate).
-		Suffix("returning id")
-
+func CreateUser(ctx context.Context, db DBTX, user models.User) error {
+	query := qb.Update("users").
+		Set("username", user.Username).
+		Set("lastname", user.Lastname).
+		Set("firstname", user.Firstname).
+		Set("profile_image", user.ProfileImage).
+		Set("birthdate", user.BirthDate).
+		Where(sq.Eq{"id": user.ID})
 	stmt, args, err := query.ToSql()
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	var id int64
+	_, err = db.Exec(ctx, stmt, args...)
 
-	err = db.QueryRow(ctx, stmt, args...).Scan(&id)
-
-	return id, err
+	return err
 }
 
 func CheckUserExists(ctx context.Context, db DBTX, userID int64) (bool, error) {
 	query := qb.Select("count(*)").
 		From("users").
-		Where(sq.Eq{"user_id": userID}).
+		Where(sq.Eq{"id": userID}).
 		Limit(1)
 
 	stmt, args, err := query.ToSql()
@@ -241,5 +243,98 @@ func UpdateUserFollowerCount(ctx context.Context, db DBTX, userId, by int64) err
 	}
 
 	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func (d *Database) PhoneExists(ctx context.Context, db DBTX, phone string) (bool, error) {
+
+	query := qb.Select("count(*)").
+		From("users").
+		Where(sq.Eq{"phone": phone})
+
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return false, err
+	}
+
+	var count int64
+
+	err = db.QueryRow(ctx, stmt, params...).Scan(&count)
+	if err != nil {
+		return false, err
+	}
+
+	return count != 0, nil
+}
+
+func (d *Database) CreateUser(ctx context.Context, db DBTX, user models.User) (int64, error) {
+	query := qb.Insert("users").
+		Columns("phone", "password").
+		Values(user.Phone, user.Hash).Suffix("returning id")
+
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return 0, err
+	}
+
+	var id int64
+
+	err = db.QueryRow(ctx, stmt, params...).Scan(&id)
+
+	return id, err
+}
+
+type GetUserParams struct {
+	Phone  *string
+	UserID *int64
+}
+
+func (d *Database) GetUser(ctx context.Context, db DBTX, args GetUserParams) (*models.User, error) {
+	query := qb.Select("id", "password").
+		From("users").
+		Where(sq.Eq{"deleted_at": nil})
+
+	if args.Phone != nil {
+		query = query.Where(sq.Eq{"phone": args.Phone})
+	}
+
+	if args.UserID != nil {
+		query = query.Where(sq.Eq{"id": args.UserID})
+	}
+
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return nil, err
+	}
+	var user models.User
+
+	err = db.QueryRow(ctx, stmt, params...).Scan(&user.ID, &user.Hash)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &user, err
+}
+
+func (d *Database) UpdateUser(ctx context.Context, db DBTX, phone, password *string, userID int64) error {
+	query := qb.Update("users")
+
+	if phone != nil {
+		query = query.Set("phone", phone)
+	}
+
+	if password != nil {
+		query = query.Set("password", password)
+	}
+
+	query = query.Where(sq.Eq{"id": userID})
+	stmt, params, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, params...)
 	return err
 }

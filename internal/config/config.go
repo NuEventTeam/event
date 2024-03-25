@@ -12,6 +12,24 @@ type Config struct {
 	Cache    Cache    `yaml:"cache"`
 	JWT      JWT      `yaml:"jwt"`
 	Http     Http     `yaml:"http"`
+	CDN      CDN      `yaml:"cdn"`
+	SMS      SMS      `yaml:"sms"`
+	Ws       Ws       `yaml:"ws"`
+}
+
+type SMS struct {
+	URL      string `yaml:"url"`
+	Login    string `yaml:"login"`
+	Password string `yaml:"password"`
+	Enabled  bool   `yaml:"enabled"`
+}
+
+type Ws struct {
+	Port         int           `yaml:"port"`
+	PongWait     time.Duration `yaml:"pong_wait"`
+	PingPeriod   time.Duration `yaml:"ping_period"`
+	WriteWait    time.Duration `yaml:"write_wait"`
+	MaxWriteSize int           `yaml:"max_message_size"`
 }
 
 type JWT struct {
@@ -23,6 +41,7 @@ type GRPC struct {
 	Port    int           `yaml:"port"`
 	Timeout time.Duration `yaml:"timeout"`
 }
+
 type Http struct {
 	Port    int           `yaml:"port"`
 	Timeout time.Duration `yaml:"timeout"`
@@ -44,9 +63,15 @@ type Cache struct {
 	Index    int    `yaml:"index"`
 }
 
-var CDNBaseUrl string
+type CDN struct {
+	KeyID           string `yaml:"key_id"`
+	SecretAccessKey string `yaml:"secret_access_key"`
+	Region          string `yaml:"region"`
+	BucketName      string `yaml:"bucket_name"`
+}
 
-func MustLoad(path string) *Config {
+func MustLoad() *Config {
+	path := "./config/local.yaml"
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		panic("config file does not exists: " + path)
@@ -56,11 +81,6 @@ func MustLoad(path string) *Config {
 	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
 		panic(err)
 	}
-	if cfg.Env == "local" {
-		CDNBaseUrl = "http://localhost:8003"
-	} else if cfg.Env == "dev" {
-		CDNBaseUrl = "http://64.23.188.226:8003"
 
-	}
 	return &cfg
 }

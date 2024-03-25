@@ -1,9 +1,9 @@
-package http
+package handlers
 
 import (
 	"errors"
 	"fmt"
-	event_service "github.com/NuEventTeam/events/internal/services/event"
+	"github.com/NuEventTeam/events/internal/features/event"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
 	"net/http"
@@ -21,11 +21,12 @@ func MustAuth(jwtSecret string) fiber.Handler {
 		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
 			return pkg.Error(ctx, http.StatusUnauthorized, "unauthorized", fmt.Errorf("invalid token"))
 		}
-		userID, err := pkg.ParseJWT(headerParts[1], jwtSecret)
+		userID, userAgent, err := pkg.ParseJWT(headerParts[1], jwtSecret)
 		if err != nil {
 			return pkg.Error(ctx, http.StatusBadRequest, "invalid token", err)
 		}
 		ctx.Locals("userId", userID)
+		ctx.Locals("userAgent", userAgent)
 		return ctx.Next()
 	}
 }
@@ -38,9 +39,9 @@ func (h *Handler) HasPermission(permission int64) fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "invalid eventID", err)
 		}
 
-		err = h.eventSvc.CheckPermission(ctx.Context(), eventId, userId, permission)
+		err = h.EventSvc.CheckPermission(ctx.Context(), eventId, userId, permission)
 		if err != nil {
-			if errors.Is(err, event_service.ErrNoPermission) {
+			if errors.Is(err, event.ErrNoPermission) {
 				return pkg.Error(ctx, fiber.StatusForbidden, "has no permission")
 			}
 			return pkg.Error(ctx, fiber.StatusInternalServerError, "something went wrong", err)

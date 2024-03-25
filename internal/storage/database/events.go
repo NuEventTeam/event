@@ -5,8 +5,9 @@ import (
 	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
-	"github.com/NuEventTeam/events/internal/config"
+	"github.com/NuEventTeam/events/internal/features/assets"
 	"github.com/NuEventTeam/events/internal/models"
+	"github.com/NuEventTeam/events/pkg"
 	"github.com/jackc/pgx/v5"
 	"log"
 	"strconv"
@@ -83,7 +84,7 @@ func AddEventLocations(ctx context.Context, db DBTX, eventID int64, locations ..
 		lg := strconv.FormatFloat(*l.Longitude, 'f', 12, 32)
 		lt := strconv.FormatFloat(*l.Latitude, 'f', 12, 32)
 		log.Println(lg, lt)
-		query = query.Values(eventID, l.Address, lg, lt, l.Seats, l.StartsAt, l.EndsAt)
+		query = query.Values(eventID, l.Address, lg, lt, l.Seats, time.Time(*l.StartsAt), time.Time(*l.EndsAt))
 	}
 
 	stmt, params, err := query.ToSql()
@@ -97,16 +98,16 @@ func AddEventLocations(ctx context.Context, db DBTX, eventID int64, locations ..
 
 }
 
-func AddEventImage(ctx context.Context, db DBTX, eventID int64, images ...models.Image) error {
-	if len(images) == 0 {
+func AddEventImage(ctx context.Context, db DBTX, eventID int64, image ...*assets.Image) error {
+	if len(image) == 0 {
 		return nil
 	}
 
 	query := qb.Insert("event_images").
 		Columns("event_id", "url")
 
-	for _, i := range images {
-		query = query.Values(eventID, i.Url)
+	for _, i := range image {
+		query = query.Values(eventID, i.Filename)
 	}
 
 	stmt, params, err := query.ToSql()
@@ -174,7 +175,7 @@ func GetEventLocations(ctx context.Context, db DBTX, eventID int64) ([]models.Lo
 	return locs, nil
 }
 
-func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64) ([]models.Image, error) {
+func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64) ([]*assets.Image, error) {
 	query := qb.Select("id", "event_id", "url").
 		From("event_images").
 		Where(sq.Eq{"deleted_at": nil}).
@@ -188,7 +189,7 @@ func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64
 		return nil, err
 	}
 
-	var imgs []models.Image
+	var imgs []*assets.Image
 
 	rows, err := db.Query(ctx, stmt, params...)
 	if err != nil {
@@ -198,14 +199,14 @@ func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64
 	defer rows.Close()
 
 	for rows.Next() {
-		var i models.Image
+		var i assets.Image
 
 		err := rows.Scan(&i.ID, &i.EventID, &i.Url)
 		if err != nil {
 			return nil, err
 		}
-		i.Url = config.CDNBaseUrl + "/get/" + i.Url
-		imgs = append(imgs, i)
+		i.Url = pkg.CDNBaseUrl + "/get/" + i.Url
+		imgs = append(imgs, &i)
 	}
 	return imgs, nil
 }
@@ -281,7 +282,7 @@ func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Man
 			return nil, err
 		}
 		if m.User.ProfileImage != nil {
-			*m.User.ProfileImage = config.CDNBaseUrl + "/get/" + *m.User.ProfileImage
+			*m.User.ProfileImage = pkg.CDNBaseUrl + "/get/" + *m.User.ProfileImage
 		}
 
 		m.Role.Permissions, err = GetRolePermissions(ctx, db, m.Role.ID)
@@ -385,11 +386,11 @@ func UpdateLocation(ctx context.Context, db DBTX, eventId, locationId int64, loc
 	}
 
 	if location.StartsAt != nil {
-		m["starts_at"] = *location.StartsAt
+		m["starts_at"] = time.Time(*location.StartsAt)
 	}
 
 	if location.EndsAt != nil {
-		m["ends_at"] = *location.EndsAt
+		m["ends_at"] = time.Time(*location.EndsAt)
 	}
 
 	query := qb.Update("event_locations").SetMap(m).

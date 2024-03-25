@@ -4,11 +4,13 @@ import (
 	"context"
 	"github.com/NuEventTeam/events/internal/app"
 	"github.com/NuEventTeam/events/internal/config"
-	"github.com/NuEventTeam/events/internal/handlers/http"
-	"github.com/NuEventTeam/events/internal/services/cdn"
-	event_service "github.com/NuEventTeam/events/internal/services/event"
-	"github.com/NuEventTeam/events/internal/services/users"
-	keydb "github.com/NuEventTeam/events/internal/storage/cache"
+	"github.com/NuEventTeam/events/internal/features/assets"
+	"github.com/NuEventTeam/events/internal/features/auth"
+	"github.com/NuEventTeam/events/internal/features/chat"
+	"github.com/NuEventTeam/events/internal/features/event"
+	"github.com/NuEventTeam/events/internal/features/handlers"
+	"github.com/NuEventTeam/events/internal/features/sms_provider"
+	"github.com/NuEventTeam/events/internal/features/user"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"log"
 	"os"
@@ -16,30 +18,28 @@ import (
 	"syscall"
 )
 
-const (
-	localConfigPath = "./config/local.yaml"
-	devConfigPath   = "./config/dev.yaml"
-)
-
 func main() {
 
-	cfg := config.MustLoad(localConfigPath)
+	cfg := config.MustLoad()
 
 	db := database.NewDatabase(context.Background(), cfg.Database)
 
-	cache := keydb.New(context.Background(), cfg.Cache)
+	sms := sms_provider.New(cfg.SMS)
+	assetsSvc := assets.NewS3Storage(cfg.CDN)
 
-	cdnService := cdn.New(config.CDNBaseUrl)
+	userSvc := user.NewEventSvc(db, assetsSvc)
 
-	userSvc := users.NewEventSvc(db, cache, cdnService)
+	eventSvc := event.NewEventSvc(db, assetsSvc)
 
-	eventSvc := event_service.NewEventSvc(db, cache, cdnService)
+	authSvc := auth.New(db, sms, cfg.JWT)
 
-	httpHandler := http.NewHttpHandler(eventSvc, cdnService, userSvc, cfg.JWT.Secret)
+	httpHandler := handlers.New(eventSvc, userSvc, assetsSvc, authSvc, cfg.JWT.Secret)
 
 	application := app.New(cfg.Http.Port, httpHandler)
 
 	go application.MustRun()
+
+	go log.Println(chat.RunChatServer(cfg.Ws.Port))
 
 	stop := make(chan os.Signal, 1)
 
