@@ -1,6 +1,7 @@
 package config
 
 import (
+	"github.com/NuEventTeam/events/pkg"
 	"github.com/ilyakaznacheev/cleanenv"
 	"os"
 	"time"
@@ -81,6 +82,10 @@ func MustLoad() *Config {
 	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
 		panic(err)
 	}
-
+	if cfg.Env == "local" {
+		pkg.CDNBaseUrl = "http://localhost:8001"
+	} else {
+		pkg.CDNBaseUrl = "http://209.97.139.224:8001"
+	}
 	return &cfg
 }

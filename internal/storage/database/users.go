@@ -92,7 +92,7 @@ type GetUserArgss struct {
 }
 
 func GetUser(ctx context.Context, db DBTX, args GetUserArgss) (models.User, error) {
-	query := qb.Select("id", "user_id", "phone", "username", "lastname", "firstname", "birthdate", "profile_image").
+	query := qb.Select("id", "phone", "username", "lastname", "firstname", "birthdate", "profile_image").
 		From("users").
 		Where(sq.Eq{"deleted_at": nil})
 
@@ -110,7 +110,7 @@ func GetUser(ctx context.Context, db DBTX, args GetUserArgss) (models.User, erro
 
 	var user models.User
 
-	err = db.QueryRow(ctx, stmt, params...).Scan(&user.ID, &user.UserID, &user.Phone, &user.Username, &user.Lastname,
+	err = db.QueryRow(ctx, stmt, params...).Scan(&user.UserID, &user.Phone, &user.Username, &user.Lastname,
 		&user.Firstname, &user.BirthDate, &user.ProfileImage)
 
 	return user, err
@@ -122,7 +122,7 @@ func GetUserPreferences(ctx context.Context, db DBTX, userID int64) ([]models.Ca
 		From("user_preferences").
 		InnerJoin("categories on user_preferences.category_id = categories.id").
 		Where(sq.Eq{"categories.deleted_at": nil}).
-		Where(sq.Eq{"user_id": userID})
+		Where(sq.Eq{"user_id": userID}).GroupBy("category_id", "name")
 
 	stmt, params, err := query.ToSql()
 	if err != nil {

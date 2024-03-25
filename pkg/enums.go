@@ -1,5 +1,7 @@
 package pkg
 
+var CDNBaseUrl = ""
+
 const (
 	AuthorTitle = "Author"
 )
