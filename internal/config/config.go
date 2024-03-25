@@ -72,7 +72,7 @@ type CDN struct {
 }
 
 func MustLoad() *Config {
-	path := "./config/local.yaml"
+	path := "./config/prod.yaml"
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		panic("config file does not exists: " + path)
