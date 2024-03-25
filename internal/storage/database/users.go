@@ -235,7 +235,7 @@ func BanUserFollower(ctx context.Context, db DBTX, userId, followerId int64) err
 func UpdateUserFollowerCount(ctx context.Context, db DBTX, userId, by int64) error {
 	query := qb.Update("users").
 		Set("follower_count", fmt.Sprintf("follower_count %d", by)).
-		Where(sq.Eq{"user_id": userId})
+		Where(sq.Eq{"id": userId})
 
 	stmt, args, err := query.ToSql()
 	if err != nil {
