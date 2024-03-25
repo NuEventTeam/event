@@ -1,0 +1,26 @@
+env: "local"
+http:
+  port: 8001
+  timeout: 5m
+ws:
+  port: 8002
+jwt:
+  secret: "my-32-character-ultra-secure-and-ultra-long-secret"
+  expiry: 30m
+database:
+  host: "event-db"
+  user: "event"
+  password: "event"
+  name: "event"
+  port: 5432
+cache:
+  prefix: "event"
+  port: "6379"
+  host: "keydb"
+  password: "auth"
+  index: 1
+cdn:
+  key_id: AKIAVRUVQ7CDRC6V74MW
+  secret_access_key: 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
+  region: us-east-1
+  bucket_name: fast-file-transfer-1
