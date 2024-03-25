@@ -25,11 +25,11 @@ func (h *Handler) SetUpEventRoutes(router *fiber.App) {
 		h.EventSvc.AddImage(),
 	)
 
-	apiV1.Put("/event/fellowship/follow/:eventId",
+	apiV1.Post("/event/fellowship/follow/:eventId",
 		MustAuth(h.JwtSecret),
 		h.EventSvc.FollowEvent())
 
-	apiV1.Put("/event/fellowship/unfollow/:eventId",
+	apiV1.Post("/event/fellowship/unfollow/:eventId",
 		MustAuth(h.JwtSecret),
 		h.EventSvc.Unfollow())
 }
