@@ -268,7 +268,7 @@ func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Man
 		"event_roles.name",
 	).
 		From("users").
-		InnerJoin("event_managers on event_managers.user_id = users.user_id").
+		InnerJoin("event_managers on event_managers.user_id = users.id").
 		InnerJoin("event_roles on event_roles.id = event_managers.role_id").
 		Where(sq.Eq{"event_managers.event_id": eventId}).
 		Where(sq.Eq{"event_managers.deleted_at": nil})
