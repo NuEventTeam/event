@@ -9,7 +9,7 @@ import (
 )
 
 func joinChatHandler(w http.ResponseWriter, r *http.Request) {
-
+	log.Println("here")
 	eventID, err := strconv.ParseInt(mux.Vars(r)["eventId"], 10, 64)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
