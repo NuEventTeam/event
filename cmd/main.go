@@ -6,6 +6,7 @@ import (
 	"github.com/NuEventTeam/events/internal/config"
 	"github.com/NuEventTeam/events/internal/features/assets"
 	"github.com/NuEventTeam/events/internal/features/auth"
+	"github.com/NuEventTeam/events/internal/features/chat"
 	"github.com/NuEventTeam/events/internal/features/event"
 	"github.com/NuEventTeam/events/internal/features/handlers"
 	"github.com/NuEventTeam/events/internal/features/sms_provider"
@@ -37,6 +38,8 @@ func main() {
 	application := app.New(cfg.Http.Port, httpHandler)
 
 	go application.MustRun()
+
+	go log.Println(chat.RunChatServer(cfg.Ws.Port))
 
 	stop := make(chan os.Signal, 1)
 

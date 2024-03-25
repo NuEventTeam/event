@@ -14,6 +14,7 @@ type Config struct {
 	Http     Http     `yaml:"http"`
 	CDN      CDN      `yaml:"cdn"`
 	SMS      SMS      `yaml:"sms"`
+	Ws       Ws       `yaml:"ws"`
 }
 
 type SMS struct {
@@ -21,6 +22,14 @@ type SMS struct {
 	Login    string `yaml:"login"`
 	Password string `yaml:"password"`
 	Enabled  bool   `yaml:"enabled"`
+}
+
+type Ws struct {
+	Port         int           `yaml:"port"`
+	PongWait     time.Duration `yaml:"pong_wait"`
+	PingPeriod   time.Duration `yaml:"ping_period"`
+	WriteWait    time.Duration `yaml:"write_wait"`
+	MaxWriteSize int           `yaml:"max_message_size"`
 }
 
 type JWT struct {
