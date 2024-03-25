@@ -66,6 +66,7 @@ func (c *Client) writeMessage(ctx context.Context) {
 		case <-ticker.C:
 			c.Conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if err := c.Conn.WriteMessage(websocket.PingMessage, nil); err != nil {
+				log.Println(err)
 				return
 			}
 		}
