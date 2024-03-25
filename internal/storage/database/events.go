@@ -266,6 +266,7 @@ func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Man
 		"event_managers.user_id",
 		"event_managers.role_id",
 		"event_roles.name",
+		"user.phone",
 	).
 		From("users").
 		InnerJoin("event_managers on event_managers.user_id = users.id").
@@ -290,7 +291,7 @@ func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Man
 	for rows.Next() {
 		var m models.Manager
 
-		err := rows.Scan(&m.User.Username, &m.User.Firstname, &m.User.Lastname, &m.User.ProfileImage, &m.User.UserID, &m.Role.ID, &m.Role.Name)
+		err := rows.Scan(&m.User.Username, &m.User.Firstname, &m.User.Lastname, &m.User.ProfileImage, &m.User.UserID, &m.Role.ID, &m.Role.Name, &m.User.Phone)
 		if err != nil {
 			return nil, err
 		}

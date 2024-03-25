@@ -11,7 +11,7 @@ type User struct {
 	UserID       int64         `json:"userID"`
 	Phone        string        `json:"phone"`
 	Username     string        `json:"username"`
-	Password     string        `json:"password"`
+	Password     string        `json:"-"`
 	Hash         string        `json:"-"`
 	Firstname    string        `json:"firstname"`
 	Lastname     *string       `json:"lastname"`
