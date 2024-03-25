@@ -164,11 +164,24 @@ func GetEventLocations(ctx context.Context, db DBTX, eventID int64) ([]models.Lo
 	defer rows.Close()
 
 	for rows.Next() {
-		var l models.Location
-		err := rows.Scan(&l.ID, &l.EventID, &l.Address, &l.Longitude, &l.Latitude, &l.Seats, &l.StartsAt, &l.EndsAt)
+		var (
+			l models.Location
+			s *time.Time
+			e *time.Time
+		)
+
+		err := rows.Scan(&l.ID, &l.EventID, &l.Address, &l.Longitude, &l.Latitude, &l.Seats, s, e)
 		if err != nil {
 			return nil, err
 		}
+
+		if s != nil {
+			l.StartsAt.FromTime(s)
+		}
+		if e != nil {
+			l.EndsAt.FromTime(e)
+		}
+
 		locs = append(locs, l)
 	}
 
