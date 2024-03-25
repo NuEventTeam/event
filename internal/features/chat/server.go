@@ -13,8 +13,8 @@ func RunChatServer(port int) error {
 	srv := &http.Server{
 		Handler:      getRouter(),
 		Addr:         fmt.Sprintf(":%d", port),
-		WriteTimeout: 15 * time.Second,
-		ReadTimeout:  15 * time.Second,
+		WriteTimeout: 20 * time.Second,
+		ReadTimeout:  20 * time.Second,
 	}
 
 	return srv.ListenAndServe()
