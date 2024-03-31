@@ -1,4 +1,4 @@
-package event
+package followers
 
 import (
 	"context"
@@ -9,10 +9,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+	"log"
 	"strconv"
 )
 
-func (e *Event) FollowEvent() fiber.Handler {
+func FollowEvent(db *database.Database) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		userId := ctx.Locals("userId").(int64)
 
@@ -21,12 +22,12 @@ func (e *Event) FollowEvent() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "invalid event id", err)
 		}
 
-		err = e.CheckEventStatus(ctx.Context(), eventId)
+		err = checkEventStatus(ctx.Context(), db.GetDb(), eventId)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
 
-		err = e.addFollower(ctx.Context(), eventId, userId)
+		err = addFollower(ctx.Context(), db, eventId, userId)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "something went wrong", err)
 		}
@@ -35,13 +36,11 @@ func (e *Event) FollowEvent() fiber.Handler {
 	}
 }
 
-func (e *Event) addFollower(ctx context.Context, eventId, followerId int64) error {
-
-	tx, err := e.db.BeginTx(ctx)
+func addFollower(ctx context.Context, db *database.Database, eventId, followerId int64) error {
+	tx, err := db.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
-
 	defer tx.Rollback(ctx)
 
 	err = database.AddEventFollower(ctx, tx, eventId, followerId)
@@ -53,7 +52,7 @@ func (e *Event) addFollower(ctx context.Context, eventId, followerId int64) erro
 		return err
 	}
 
-	err = IncreaseFollowerCount(ctx, tx, eventId)
+	err = increaseFollowerCount(ctx, tx, eventId)
 	if err != nil {
 		return err
 	}
@@ -64,15 +63,15 @@ func (e *Event) addFollower(ctx context.Context, eventId, followerId int64) erro
 	return nil
 }
 
-func IncreaseFollowerCount(ctx context.Context, db database.DBTX, userId int64) error {
+func increaseFollowerCount(ctx context.Context, db database.DBTX, userId int64) error {
 	query := `update events set follower_count = follower_count + 1 where id = $1`
 
 	_, err := db.Exec(ctx, query, userId)
 	return err
 }
 
-func (e *Event) CheckEventStatus(ctx context.Context, eventId int64) error {
-	event, err := database.GetEventByID(ctx, e.db.GetDb(), eventId)
+func checkEventStatus(ctx context.Context, db database.DBTX, eventId int64) error {
+	event, err := database.GetEventByID(ctx, db, eventId)
 	if err != nil {
 		return err
 	}
@@ -80,11 +79,11 @@ func (e *Event) CheckEventStatus(ctx context.Context, eventId int64) error {
 	if event == nil {
 		return fmt.Errorf("event not exists")
 	}
-	location, err := database.GetEventLocations(ctx, e.db.GetDb(), eventId)
+	location, err := database.GetEventLocations(ctx, db, eventId)
 	if err != nil {
 		return err
 	}
-
+	log.Printf("%+v", location[0])
 	if location[0].Seats != nil {
 		if *location[0].Seats == *location[0].AttendeesCount {
 			return fmt.Errorf("event is full")

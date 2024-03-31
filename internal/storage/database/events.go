@@ -122,7 +122,7 @@ func AddEventImage(ctx context.Context, db DBTX, eventID int64, image ...assets.
 }
 
 func GetEventByID(ctx context.Context, db DBTX, eventID int64) (*models.Event, error) {
-	query := qb.Select("id", "title", "description", "age_min", "age_max", "status", "created_at").
+	query := qb.Select("id", "title", "description", "age_min", "age_max", "status", "created_at", "follower_count").
 		From("events").Where(sq.Eq{"id": eventID})
 
 	stmt, params, err := query.ToSql()
@@ -132,7 +132,7 @@ func GetEventByID(ctx context.Context, db DBTX, eventID int64) (*models.Event, e
 	log.Println(stmt)
 	event := &models.Event{}
 
-	err = db.QueryRow(ctx, stmt, params...).Scan(&event.ID, &event.Title, &event.Description, &event.MinAge, &event.MaxAge, &event.Status, &event.CreatedAt)
+	err = db.QueryRow(ctx, stmt, params...).Scan(&event.ID, &event.Title, &event.Description, &event.MinAge, &event.MaxAge, &event.Status, &event.CreatedAt, &event.FollowerCount)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
@@ -144,7 +144,7 @@ func GetEventByID(ctx context.Context, db DBTX, eventID int64) (*models.Event, e
 }
 
 func GetEventLocations(ctx context.Context, db DBTX, eventID int64) ([]models.Location, error) {
-	query := qb.Select("id", "event_id", "address", "longitude", "latitude", "seats", "starts_at", "ends_at").
+	query := qb.Select("id", "event_id", "address", "longitude", "latitude", "seats", "starts_at", "ends_at", "attendees_count").
 		From("event_locations").
 		Where(sq.Eq{"deleted_at": nil}).
 		Where(sq.Eq{"event_id": eventID})
@@ -170,7 +170,7 @@ func GetEventLocations(ctx context.Context, db DBTX, eventID int64) ([]models.Lo
 			e time.Time
 		)
 
-		err := rows.Scan(&l.ID, &l.EventID, &l.Address, &l.Longitude, &l.Latitude, &l.Seats, &s, &e)
+		err := rows.Scan(&l.ID, &l.EventID, &l.Address, &l.Longitude, &l.Latitude, &l.Seats, &s, &e, &l.AttendeesCount)
 		if err != nil {
 			return nil, err
 		}
@@ -511,7 +511,7 @@ func CheckPermission(ctx context.Context, db DBTX, eventID, userID int64, permis
 
 func AddEventFollower(ctx context.Context, db DBTX, eventId, followerId int64) error {
 	query := qb.Insert("event_followers").
-		Columns("event_id", "follower_id").
+		Columns("event_id", "user_id").
 		Values(eventId, followerId)
 
 	stmt, args, err := query.ToSql()
@@ -526,7 +526,7 @@ func AddEventFollower(ctx context.Context, db DBTX, eventId, followerId int64) e
 func RemoveEventFollower(ctx context.Context, db DBTX, eventId, followerId int64) error {
 	query := qb.Delete("event_followers").
 		Where(sq.Eq{"event_id": eventId}).
-		Where(sq.Eq{"follower_id": followerId})
+		Where(sq.Eq{"user_id": followerId})
 
 	stmt, args, err := query.ToSql()
 	if err != nil {

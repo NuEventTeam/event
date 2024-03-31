@@ -80,6 +80,7 @@ type Event struct {
 	Locations       []Location     `json:"locations"`
 	Managers        []Manager      `json:"managers"`
 	Attendees       []User         `json:"-"`
+	FollowerCount   int64          `json:"followerCount"`
 }
 
 type Otp struct {

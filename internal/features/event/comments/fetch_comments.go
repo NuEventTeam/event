@@ -6,7 +6,6 @@ import (
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
-	"log"
 )
 
 var qb = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
@@ -72,7 +71,7 @@ func getParentComments(ctx context.Context, db database.DBTX, param FetchComment
 		}
 
 		if c.Author.ProfileImage != nil {
-			*c.Author.ProfileImage = pkg.CDNBaseUrl + *c.Author.ProfileImage
+			*c.Author.ProfileImage = pkg.CDNBaseUrl + "/get/" + *c.Author.ProfileImage
 		}
 
 		comments = append(comments, c)
@@ -93,7 +92,7 @@ func getChildComments(ctx context.Context, db database.DBTX, parentIds []int64) 
 	if err != nil {
 		return nil, err
 	}
-	log.Println(stmt)
+
 	rows, err := db.Query(ctx, stmt, args...)
 	if err != nil {
 		return nil, err

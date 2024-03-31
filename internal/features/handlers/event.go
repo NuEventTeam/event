@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/NuEventTeam/events/internal/features/event/comments"
+	"github.com/NuEventTeam/events/internal/features/event/followers"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
 )
@@ -28,11 +29,19 @@ func (h *Handler) SetUpEventRoutes(router *fiber.App) {
 
 	apiV1.Post("/event/fellowship/follow/:eventId",
 		MustAuth(h.JwtSecret),
-		h.EventSvc.FollowEvent())
+		followers.FollowEvent(h.DB))
 
 	apiV1.Post("/event/fellowship/unfollow/:eventId",
 		MustAuth(h.JwtSecret),
-		h.EventSvc.Unfollow())
+		followers.Unfollow(h.DB))
+
+	apiV1.Post("/event/fellowship/list/:eventId",
+		MustAuth(h.JwtSecret),
+		followers.ListFollowers(h.DB))
+
+	apiV1.Post("/event/fellowship/search/:eventId",
+		MustAuth(h.JwtSecret),
+		followers.ListFollowers(h.DB))
 
 	apiV1.Post("/event/comment/add",
 		MustAuth(h.JwtSecret),

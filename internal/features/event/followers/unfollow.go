@@ -1,4 +1,4 @@
-package event
+package followers
 
 import (
 	"context"
@@ -8,7 +8,7 @@ import (
 	"strconv"
 )
 
-func (e Event) Unfollow() fiber.Handler {
+func Unfollow(db *database.Database) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 
 		userId := ctx.Locals("userId").(int64)
@@ -18,7 +18,7 @@ func (e Event) Unfollow() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "invalid event id", err)
 		}
 
-		err = e.removeFollower(ctx.Context(), eventId, userId)
+		err = removeFollower(ctx.Context(), db, eventId, userId)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "something went wrong", err)
 		}
@@ -27,8 +27,8 @@ func (e Event) Unfollow() fiber.Handler {
 	}
 }
 
-func (e *Event) removeFollower(ctx context.Context, eventId, followerId int64) error {
-	tx, err := e.db.BeginTx(ctx)
+func removeFollower(ctx context.Context, db *database.Database, eventId, followerId int64) error {
+	tx, err := db.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
@@ -40,7 +40,7 @@ func (e *Event) removeFollower(ctx context.Context, eventId, followerId int64) e
 		return err
 	}
 
-	err = DecreaseFollowerCount(ctx, tx, eventId)
+	err = decreaseFollowerCount(ctx, tx, eventId)
 	if err != nil {
 		return err
 	}
@@ -51,7 +51,7 @@ func (e *Event) removeFollower(ctx context.Context, eventId, followerId int64) e
 	return nil
 }
 
-func DecreaseFollowerCount(ctx context.Context, db database.DBTX, userId int64) error {
+func decreaseFollowerCount(ctx context.Context, db database.DBTX, userId int64) error {
 	query := `update events set follower_count = follower_count - 1 where id = $1`
 
 	_, err := db.Exec(ctx, query, userId)
