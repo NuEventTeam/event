@@ -65,6 +65,7 @@ type Cache struct {
 }
 
 type CDN struct {
+	URL             string `yaml:"url"`
 	KeyID           string `yaml:"key_id"`
 	SecretAccessKey string `yaml:"secret_access_key"`
 	Region          string `yaml:"region"`
@@ -82,10 +83,8 @@ func MustLoad() *Config {
 	if err := cleanenv.ReadConfig(path, &cfg); err != nil {
 		panic(err)
 	}
-	if cfg.Env == "local" {
-		pkg.CDNBaseUrl = "http://localhost:8001"
-	} else {
-		pkg.CDNBaseUrl = "http://209.97.139.224:8001"
-	}
+
+	pkg.CDNBaseUrl = cfg.CDN.URL
+
 	return &cfg
 }
