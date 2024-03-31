@@ -31,5 +31,13 @@ func (h *Handler) SetUpUserRoutes(router *fiber.App) {
 		MustAuth(h.JwtSecret),
 		h.UserSvc.UnfollowUser(),
 	)
+	apiV1.Post("/users/friendship/followed",
+		MustAuth(h.JwtSecret),
+		h.UserSvc.ListFollowed(),
+	)
+	apiV1.Post("/users/friendship/follower",
+		MustAuth(h.JwtSecret),
+		h.UserSvc.ListFollowers(),
+	)
 
 }

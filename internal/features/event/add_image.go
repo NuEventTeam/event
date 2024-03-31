@@ -24,7 +24,7 @@ func (e Event) AddImage() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "invalid eventID", err)
 		}
 
-		images := make([]*assets.Image, len(form.File["images"]))
+		images := make([]assets.Image, len(form.File["images"]))
 		wg := sync.WaitGroup{}
 
 		for i, f := range form.File["images"] {

@@ -2,10 +2,13 @@ package event
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"strconv"
 )
 
@@ -43,10 +46,14 @@ func (e *Event) addFollower(ctx context.Context, eventId, followerId int64) erro
 
 	err = database.AddEventFollower(ctx, tx, eventId, followerId)
 	if err != nil {
+		var e *pgconn.PgError
+		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
+			return nil
+		}
 		return err
 	}
 
-	err = database.UpdateEventFollowerCount(ctx, tx, eventId, 1)
+	err = IncreaseFollowerCount(ctx, tx, eventId)
 	if err != nil {
 		return err
 	}
@@ -55,6 +62,13 @@ func (e *Event) addFollower(ctx context.Context, eventId, followerId int64) erro
 		return err
 	}
 	return nil
+}
+
+func IncreaseFollowerCount(ctx context.Context, db database.DBTX, userId int64) error {
+	query := `update events set follower_count = follower_count + 1 where id = $1`
+
+	_, err := db.Exec(ctx, query, userId)
+	return err
 }
 
 func (e *Event) CheckEventStatus(ctx context.Context, eventId int64) error {

@@ -7,18 +7,18 @@ import (
 )
 
 type User struct {
-	ID           int64         `json:"id"`
-	UserID       int64         `json:"userID"`
-	Phone        string        `json:"phone"`
-	Username     string        `json:"username"`
-	Password     string        `json:"-"`
-	Hash         string        `json:"-"`
-	Firstname    string        `json:"firstname"`
-	Lastname     *string       `json:"lastname"`
-	Image        *assets.Image `json:"-"`
-	ProfileImage *string       `json:"profileImage"`
-	BirthDate    time.Time     `json:"dateOfBirth"`
-	Preferences  []Category    `json:"preferences"`
+	ID           int64        `json:"id"`
+	UserID       int64        `json:"userId"`
+	Phone        string       `json:"phone"`
+	Username     string       `json:"username"`
+	Password     string       `json:"-"`
+	Hash         string       `json:"-"`
+	Firstname    string       `json:"firstname"`
+	Lastname     *string      `json:"lastname"`
+	Image        assets.Image `json:"-"`
+	ProfileImage *string      `json:"profileImage"`
+	BirthDate    time.Time    `json:"dateOfBirth"`
+	Preferences  []Category   `json:"preferences"`
 }
 
 type Permission struct {
@@ -65,21 +65,21 @@ type Image struct {
 }
 
 type Event struct {
-	ID              int64           `json:"id"`
-	Title           *string         `json:"title"`
-	Description     *string         `json:"description"`
-	Status          *int            `json:"status"`
-	MaxAge          *int64          `json:"maxAge"`
-	MinAge          *int64          `json:"minAge"`
-	RemoveImagesIds []int64         `json:"-,omitempty"`
-	Images          []*assets.Image `json:"images"`
-	ImageIds        []int64         `json:"imageIds"`
-	CreatedAt       time.Time       `json:"created_at"`
-	Categories      []Category      `json:"categories"`
-	CategoryIds     []int64         `json:"-"`
-	Locations       []Location      `json:"locations"`
-	Managers        []Manager       `json:"managers"`
-	Attendees       []User          `json:"-"`
+	ID              int64          `json:"id"`
+	Title           *string        `json:"title"`
+	Description     *string        `json:"description"`
+	Status          *int           `json:"status"`
+	MaxAge          *int64         `json:"maxAge"`
+	MinAge          *int64         `json:"minAge"`
+	RemoveImagesIds []int64        `json:"-,omitempty"`
+	Images          []assets.Image `json:"images"`
+	ImageIds        []int64        `json:"imageIds"`
+	CreatedAt       time.Time      `json:"created_at"`
+	Categories      []Category     `json:"categories"`
+	CategoryIds     []int64        `json:"-"`
+	Locations       []Location     `json:"locations"`
+	Managers        []Manager      `json:"managers"`
+	Attendees       []User         `json:"-"`
 }
 
 type Otp struct {

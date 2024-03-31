@@ -62,7 +62,7 @@ func (u User) CreateMobileUserHandler() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "user does not exists")
 		}
 
-		var image *assets.Image
+		var image assets.Image
 
 		for _, f := range form.File["images"] {
 
@@ -84,7 +84,7 @@ func (u User) CreateMobileUserHandler() fiber.Handler {
 		}
 
 		request.UserID = userId
-		request.ProfileImage = &image.Filename
+		request.ProfileImage = image.Filename
 
 		birthDate, err := time.Parse(time.DateOnly, request.BirthDate)
 		if err != nil {
@@ -164,7 +164,7 @@ func (u User) CreateUserHandler() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
 
-		var image *assets.Image
+		var image assets.Image
 
 		for _, f := range form.File["images"] {
 
@@ -195,7 +195,7 @@ func (u User) CreateUserHandler() fiber.Handler {
 			ID:           userId,
 			UserID:       userId,
 			Username:     form.Value["username"][0],
-			ProfileImage: &image.Filename,
+			ProfileImage: image.Filename,
 			BirthDate:    birthDate,
 			Phone:        form.Value["phone"][0],
 			Firstname:    form.Value["firstname"][0],

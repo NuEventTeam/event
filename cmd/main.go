@@ -32,7 +32,7 @@ func main() {
 
 	authSvc := auth.New(db, sms, cfg.JWT)
 
-	httpHandler := handlers.New(eventSvc, userSvc, assetsSvc, authSvc, cfg.JWT.Secret)
+	httpHandler := handlers.New(eventSvc, userSvc, assetsSvc, authSvc, cfg.JWT.Secret, db)
 
 	application := app.New(cfg.Http.Port, httpHandler)
 

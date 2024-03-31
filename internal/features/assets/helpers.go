@@ -19,7 +19,7 @@ type Image struct {
 	EventID   int64     `json:"eventID"`
 	Url       string    `json:"url"`
 	CreatedAt time.Time `json:"createdAt"`
-	Filename  string    `json:"-"`
+	Filename  *string   `json:"-"`
 	ext       string
 	file      io.Reader
 }
@@ -38,10 +38,10 @@ func WithWidthAndHeight(w, h uint) OptFunc {
 	}
 }
 
-func NewImage(filename string, file io.Reader, opts ...OptFunc) (*Image, error) {
+func NewImage(filename string, file io.Reader, opts ...OptFunc) (Image, error) {
 
-	image := &Image{
-		Filename: filename,
+	image := Image{
+		Filename: &filename,
 		file:     file,
 		ext:      path.Ext(filename),
 	}
@@ -53,7 +53,7 @@ func NewImage(filename string, file io.Reader, opts ...OptFunc) (*Image, error) 
 		fn := fn
 		go func() {
 			defer wg.Done()
-			err := fn(image)
+			err := fn(&image)
 			if err != nil {
 				log.Println(err)
 				return
@@ -63,7 +63,10 @@ func NewImage(filename string, file io.Reader, opts ...OptFunc) (*Image, error) 
 	wg.Wait()
 	return image, nil
 }
-
+func (u *Image) SetFilename(filename string) {
+	u.Filename = new(string)
+	*u.Filename = filename
+}
 func (i *Image) ResizeImage(w uint, h uint) error {
 
 	if i.ext == ".jpg" || i.ext == ".jpeg" {

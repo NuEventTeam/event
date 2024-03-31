@@ -40,7 +40,7 @@ func (e *Event) removeFollower(ctx context.Context, eventId, followerId int64) e
 		return err
 	}
 
-	err = database.UpdateEventFollowerCount(ctx, tx, eventId, -1)
+	err = DecreaseFollowerCount(ctx, tx, eventId)
 	if err != nil {
 		return err
 	}
@@ -49,4 +49,11 @@ func (e *Event) removeFollower(ctx context.Context, eventId, followerId int64) e
 		return err
 	}
 	return nil
+}
+
+func DecreaseFollowerCount(ctx context.Context, db database.DBTX, userId int64) error {
+	query := `update events set follower_count = follower_count - 1 where id = $1`
+
+	_, err := db.Exec(ctx, query, userId)
+	return err
 }

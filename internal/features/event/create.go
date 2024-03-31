@@ -68,7 +68,7 @@ func (e *Event) CreateEventHandler() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, violations)
 		}
 
-		images := make([]*assets.Image, len(form.File["images"]))
+		images := make([]assets.Image, len(form.File["images"]))
 		wg := sync.WaitGroup{}
 
 		for i, f := range form.File["images"] {
@@ -147,7 +147,7 @@ func (e Event) createEvent(ctx context.Context, event models.Event) (int64, erro
 	}
 
 	for i, c := range event.Images {
-		event.Images[i].Filename = fmt.Sprint(pkg.EventNamespace, "/", eventId, "/", c.Filename)
+		event.Images[i].SetFilename(fmt.Sprint(pkg.EventNamespace, "/", eventId, "/", c.Filename))
 	}
 
 	err = database.AddEventImage(ctx, tx, eventId, event.Images...)

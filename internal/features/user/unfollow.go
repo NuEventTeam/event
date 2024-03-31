@@ -2,6 +2,8 @@ package user
 
 import (
 	"context"
+	"fmt"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
@@ -31,11 +33,11 @@ func (e *User) RemoveFollower(ctx context.Context, userId, followerId int64) err
 		return err
 	}
 	defer tx.Rollback(ctx)
-	err = database.RemoveUserFollower(ctx, tx, userId, followerId)
+	err = RemoveUserFollower(ctx, tx, userId, followerId)
 	if err != nil {
 		return err
 	}
-	err = database.UpdateUserFollowerCount(ctx, tx, userId, -1)
+	err = DecreaseFollowerCount(ctx, tx, userId)
 	if err != nil {
 		return err
 	}
@@ -43,4 +45,27 @@ func (e *User) RemoveFollower(ctx context.Context, userId, followerId int64) err
 		return err
 	}
 	return nil
+}
+
+func RemoveUserFollower(ctx context.Context, db database.DBTX, userId, followerId int64) error {
+	query := qb.Delete("user_followers").
+		Where(sq.Eq{"user_id": userId}).
+		Where(sq.Eq{"follower_id": followerId})
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	row, err := db.Exec(ctx, stmt, args...)
+	if row.RowsAffected() == 0 {
+		return fmt.Errorf("follower does not exist")
+	}
+	return err
+}
+func DecreaseFollowerCount(ctx context.Context, db database.DBTX, userId int64) error {
+	query := `update users set follower_count = follower_count - 1 where id = $1`
+
+	_, err := db.Exec(ctx, query, userId)
+	return err
 }

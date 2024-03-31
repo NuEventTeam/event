@@ -8,14 +8,17 @@ import (
 	"log"
 )
 
-func (s *Assets) Upload(ctx context.Context, images ...*Image) {
-
+func (s *Assets) Upload(ctx context.Context, images ...Image) {
+	log.Println(images)
 	for _, img := range images {
 		img := img
 		go func() {
+			if img.Filename == nil {
+				return
+			}
 			_, err := s.client.PutObject(ctx, &s3.PutObjectInput{
 				Bucket:             aws.String(s.bucket),
-				Key:                aws.String(img.Filename),
+				Key:                img.Filename,
 				Body:               img.file,
 				ContentDisposition: aws.String(fmt.Sprintf("inline; filename=%s", img.Filename)),
 				ContentType:        aws.String(GetContentType[img.ext]),

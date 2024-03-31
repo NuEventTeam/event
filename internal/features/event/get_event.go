@@ -39,7 +39,6 @@ func (e *Event) getEventByID(ctx context.Context, eventId int64) (*models.Event,
 	if err != nil {
 		return nil, err
 	}
-
 	locations, err := database.GetEventLocations(ctx, e.db.GetDb(), eventId)
 	if err != nil {
 		return nil, err

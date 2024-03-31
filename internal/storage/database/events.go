@@ -98,7 +98,7 @@ func AddEventLocations(ctx context.Context, db DBTX, eventID int64, locations ..
 
 }
 
-func AddEventImage(ctx context.Context, db DBTX, eventID int64, image ...*assets.Image) error {
+func AddEventImage(ctx context.Context, db DBTX, eventID int64, image ...assets.Image) error {
 	if len(image) == 0 {
 		return nil
 	}
@@ -188,7 +188,7 @@ func GetEventLocations(ctx context.Context, db DBTX, eventID int64) ([]models.Lo
 	return locs, nil
 }
 
-func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64) ([]*assets.Image, error) {
+func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64) ([]assets.Image, error) {
 	query := qb.Select("id", "event_id", "url").
 		From("event_images").
 		Where(sq.Eq{"deleted_at": nil}).
@@ -202,7 +202,7 @@ func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64
 		return nil, err
 	}
 
-	var imgs []*assets.Image
+	var imgs []assets.Image
 
 	rows, err := db.Query(ctx, stmt, params...)
 	if err != nil {
@@ -219,7 +219,7 @@ func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64
 			return nil, err
 		}
 		i.Url = pkg.CDNBaseUrl + "/get/" + i.Url
-		imgs = append(imgs, &i)
+		imgs = append(imgs, i)
 	}
 	return imgs, nil
 }
@@ -266,7 +266,7 @@ func GetEventManagers(ctx context.Context, db DBTX, eventId int64) ([]models.Man
 		"event_managers.user_id",
 		"event_managers.role_id",
 		"event_roles.name",
-		"user.phone",
+		"users.phone",
 	).
 		From("users").
 		InnerJoin("event_managers on event_managers.user_id = users.id").

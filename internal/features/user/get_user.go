@@ -16,10 +16,10 @@ func (u User) GetByUsername() fiber.Handler {
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 		}
-
-		profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
-
-		user.ProfileImage = &profileImgUrl
+		if user.ProfileImage != nil {
+			profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
+			user.ProfileImage = &profileImgUrl
+		}
 
 		return pkg.Success(ctx, user)
 	}
