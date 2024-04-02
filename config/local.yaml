@@ -20,7 +20,7 @@ cache:
   password: "auth"
   index: 1
 cdn:
-  url: "http://209.97.139.224:8001"
+  url: "http://localhost:8001"
   key_id: AKIAVRUVQ7CDRC6V74MW
   secret_access_key: 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
   region: us-east-1
