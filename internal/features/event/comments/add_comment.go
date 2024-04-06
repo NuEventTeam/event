@@ -5,6 +5,7 @@ import (
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
+	"log"
 	"time"
 )
 
@@ -39,21 +40,23 @@ func AddCommentHandler(db *database.Database) fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "could not parse json", err)
 		}
 		request.AuthorId = authorId
-		commentID, err := addComment(ctx.Context(), db.GetDb(), request)
+		comment, err := addComment(ctx.Context(), db.GetDb(), request)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "oops something went wrong", err)
 		}
 
 		author, err := getCommentAuthor(ctx.Context(), db.GetDb(), authorId)
 		if err != nil {
+			log.Println("here")
 			return pkg.Error(ctx, fiber.StatusBadRequest, "oops something went wrong", err)
 		}
 
 		response := Comment{
-			CommentId: commentID,
+			CommentId: comment.CommentId,
 			ParentId:  request.ParentId,
 			Text:      request.Text,
 			Author:    author,
+			CreatedAt: comment.CreatedAt,
 		}
 
 		return pkg.Success(ctx, fiber.Map{"comment": response})
@@ -75,17 +78,17 @@ func getCommentAuthor(ctx context.Context, db database.DBTX, userId int64) (Auth
 
 }
 
-func addComment(ctx context.Context, db database.DBTX, request AddCommentRequest) (int64, error) {
-	query := `insert into comments (parent_id, text, author_id, event_id) values ($1, $2, $3, $4) returning id;`
+func addComment(ctx context.Context, db database.DBTX, request AddCommentRequest) (Comment, error) {
+	query := `insert into comments (parent_id, text, author_id, event_id) values ($1, $2, $3, $4) returning id,created_at;`
 
 	args := []interface{}{request.ParentId, request.Text, request.AuthorId, request.EventId}
 
-	var id int64
+	var c Comment
 
-	err := db.QueryRow(ctx, query, args...).Scan(&id)
+	err := db.QueryRow(ctx, query, args...).Scan(&c.CommentId, &c.CreatedAt)
 	if err != nil {
-		return 0, err
+		return Comment{}, err
 	}
 
-	return id, nil
+	return c, nil
 }

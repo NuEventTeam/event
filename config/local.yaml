@@ -8,7 +8,7 @@ jwt:
   secret: "my-32-character-ultra-secure-and-ultra-long-secret"
   expiry: 30m
 database:
-  host: "event-db"
+  host: "localhost"
   user: "event"
   password: "event"
   name: "event"
