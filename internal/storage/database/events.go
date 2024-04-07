@@ -16,8 +16,8 @@ import (
 
 func CreateEvent(ctx context.Context, db DBTX, event models.Event) (int64, error) {
 	query := qb.Insert("events").
-		Columns("title", "description", "age_min", "age_max").
-		Values(event.Title, event.Description, event.MinAge, event.MaxAge).
+		Columns("title", "description", "age_min", "age_max", "price").
+		Values(event.Title, event.Description, event.MinAge, event.MaxAge, event.Price).
 		Suffix("RETURNING id")
 
 	stmt, params, err := query.ToSql()
@@ -122,7 +122,7 @@ func AddEventImage(ctx context.Context, db DBTX, eventID int64, image ...assets.
 }
 
 func GetEventByID(ctx context.Context, db DBTX, eventID int64) (*models.Event, error) {
-	query := qb.Select("id", "title", "description", "age_min", "age_max", "status", "created_at", "follower_count").
+	query := qb.Select("id", "title", "description", "age_min", "age_max", "status", "created_at", "follower_count", "price").
 		From("events").Where(sq.Eq{"id": eventID})
 
 	stmt, params, err := query.ToSql()
@@ -132,7 +132,7 @@ func GetEventByID(ctx context.Context, db DBTX, eventID int64) (*models.Event, e
 	log.Println(stmt)
 	event := &models.Event{}
 
-	err = db.QueryRow(ctx, stmt, params...).Scan(&event.ID, &event.Title, &event.Description, &event.MinAge, &event.MaxAge, &event.Status, &event.CreatedAt, &event.FollowerCount)
+	err = db.QueryRow(ctx, stmt, params...).Scan(&event.ID, &event.Title, &event.Description, &event.MinAge, &event.MaxAge, &event.Status, &event.CreatedAt, &event.FollowerCount, &event.Price)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {

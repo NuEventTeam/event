@@ -72,6 +72,7 @@ type Event struct {
 	MaxAge          *int64         `json:"maxAge"`
 	MinAge          *int64         `json:"minAge"`
 	RemoveImagesIds []int64        `json:"-,omitempty"`
+	Price           *int64         `json:"price"`
 	Images          []assets.Image `json:"images"`
 	ImageIds        []int64        `json:"imageIds"`
 	CreatedAt       time.Time      `json:"created_at"`
