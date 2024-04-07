@@ -49,7 +49,7 @@ func getParentComments(ctx context.Context, db database.DBTX, param FetchComment
 	query := `select comments.id, comments.text, comments.parent_id, users.id, users.profile_image, users.username, comments.created_at
 				from comments 
 				inner join users on users.id = comments.author_id
-				where comments.id > $1 and event_id = $2 and parent_id is null
+				where comments.id < $1 and event_id = $2 and parent_id is null
 				order by comments.id desc, comments.created_at desc
 				limit 10`
 
