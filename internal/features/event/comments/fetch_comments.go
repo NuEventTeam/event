@@ -53,7 +53,7 @@ func getParentComments(ctx context.Context, db database.DBTX, param FetchComment
 	if param.LastParentId != 0 {
 		query = query + "comments.id < $1 and "
 	}
-	query = query + `event_id = $2 and parent_id is null
+	query = query + ` event_id = $2 and parent_id is null
 				order by comments.id desc, comments.created_at desc
 				limit 10`
 
