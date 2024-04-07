@@ -50,6 +50,7 @@ func NewDatabase(ctx context.Context, cfg config.Database) *Database {
 	q := dsn.Query()
 
 	q.Add("sslmode", "disable")
+	q.Add("timezone", "Asia/Almaty")
 
 	dsn.RawQuery = q.Encode()
 	poolConfig, err := pgxpool.ParseConfig(dsn.String())
