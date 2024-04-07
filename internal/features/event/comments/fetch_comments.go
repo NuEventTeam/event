@@ -54,7 +54,7 @@ func FetchCommentHandler(db *database.Database) fiber.Handler {
 func getEventAuthor(ctx context.Context, db database.DBTX, eventId int64) (string, error) {
 	query := `select users.username from users 
 		inner join event_managers on users.id = event_managers.user_id
-		inner event_role_permissions on event_managers.role_id = event_role_permissions.role_id
+		inner join event_role_permissions on event_managers.role_id = event_role_permissions.role_id
 		where event_managers.event_id = $1 and event_role_permissions.permission_id = 2`
 	var username string
 
