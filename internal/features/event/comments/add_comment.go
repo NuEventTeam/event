@@ -26,9 +26,10 @@ type Comment struct {
 }
 
 type Author struct {
-	ID           int64   `json:"id"`
-	Username     string  `json:"username"`
-	ProfileImage *string `json:"profileImage"`
+	ID            int64   `json:"id"`
+	Username      string  `json:"username"`
+	ProfileImage  *string `json:"profileImage"`
+	IsEventAuthor bool    `json:"isEventAuthor"`
 }
 
 func AddCommentHandler(db *database.Database) fiber.Handler {

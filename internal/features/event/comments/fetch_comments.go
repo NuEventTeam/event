@@ -6,13 +6,15 @@ import (
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
+	"log"
 )
 
 var qb = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
 
 type FetchCommentRequest struct {
-	LastParentId int64 `json:"lastParentId"`
-	EventId      int64 `json:"eventId"`
+	LastParentId   int64  `json:"lastParentId"`
+	EventId        int64  `json:"eventId"`
+	AuthorUsername string `json:"-"`
 }
 
 func FetchCommentHandler(db *database.Database) fiber.Handler {
@@ -24,12 +26,17 @@ func FetchCommentHandler(db *database.Database) fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "cannot parse json", err)
 		}
 
+		eventAuthorUsername, err := getEventAuthor(ctx.Context(), db.GetDb(), request.EventId)
+		if err != nil {
+			return pkg.Error(ctx, fiber.StatusBadRequest, "oops unexpected error", err)
+		}
+
 		parentComments, parentIds, err := getParentComments(ctx.Context(), db.GetDb(), request)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "oops unexpected error", err)
 		}
 
-		childComments, err := getChildComments(ctx.Context(), db.GetDb(), parentIds)
+		childComments, err := getChildComments(ctx.Context(), db.GetDb(), eventAuthorUsername, parentIds)
 
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "oops unexpected error", err)
@@ -42,6 +49,17 @@ func FetchCommentHandler(db *database.Database) fiber.Handler {
 		}
 		return pkg.Success(ctx, fiber.Map{"comments": parentComments})
 	}
+}
+
+func getEventAuthor(ctx context.Context, db database.DBTX, eventId int64) (string, error) {
+	query := `select users.username from users 
+		inner join event_managers on users.id = event_managers.user_id
+		where event_id = $1 and role_id = 1`
+	var username string
+
+	err := db.QueryRow(ctx, query, eventId).Scan(&username)
+
+	return username, err
 }
 
 func getParentComments(ctx context.Context, db database.DBTX, param FetchCommentRequest) ([]Comment, []int64, error) {
@@ -57,12 +75,14 @@ func getParentComments(ctx context.Context, db database.DBTX, param FetchComment
 	}
 
 	query = query.Where(sq.Eq{"comments.event_id": param.EventId}).
+		Where(sq.Eq{"parent_id": nil}).
 		OrderBy("comments.id desc", "comments.created_at desc")
 
 	stmt, args, err := query.ToSql()
 	if err != nil {
 		return nil, nil, err
 	}
+	log.Println(stmt)
 
 	rows, err := db.Query(ctx, stmt, args...)
 	if err != nil {
@@ -79,6 +99,9 @@ func getParentComments(ctx context.Context, db database.DBTX, param FetchComment
 			return nil, nil, err
 		}
 
+		if param.AuthorUsername == c.Author.Username {
+			c.Author.IsEventAuthor = true
+		}
 		if c.Author.ProfileImage != nil {
 			*c.Author.ProfileImage = pkg.CDNBaseUrl + "/get/" + *c.Author.ProfileImage
 		}
@@ -90,7 +113,7 @@ func getParentComments(ctx context.Context, db database.DBTX, param FetchComment
 	return comments, parentIds, err
 }
 
-func getChildComments(ctx context.Context, db database.DBTX, parentIds []int64) (map[int64][]Comment, error) {
+func getChildComments(ctx context.Context, db database.DBTX, authorUsername string, parentIds []int64) (map[int64][]Comment, error) {
 	query := qb.Select("comments.id", "comments.text", "comments.parent_id",
 		"users.id", "users.profile_image", "users.username", "comments.created_at").
 		From("comments").
@@ -117,6 +140,11 @@ func getChildComments(ctx context.Context, db database.DBTX, parentIds []int64) 
 		if err != nil {
 			return nil, err
 		}
+
+		if authorUsername == c.Author.Username {
+			c.Author.IsEventAuthor = true
+		}
+
 		if c.Author.ProfileImage != nil {
 			*c.Author.ProfileImage = pkg.CDNBaseUrl + *c.Author.ProfileImage
 		}
