@@ -57,7 +57,7 @@ func getParentComments(ctx context.Context, db database.DBTX, param FetchComment
 	}
 
 	query = query.Where(sq.Eq{"comments.event_id": param.EventId}).
-		OrderBy("comment.id desc", "comments.created_at desc")
+		OrderBy("comments.id desc", "comments.created_at desc")
 
 	stmt, args, err := query.ToSql()
 	if err != nil {
