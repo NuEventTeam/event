@@ -175,12 +175,8 @@ func GetEventLocations(ctx context.Context, db DBTX, eventID int64) ([]models.Lo
 			return nil, err
 		}
 
-		if !s.IsZero() {
-			l.StartsAt.FromTime(&s)
-		}
-		if !e.IsZero() {
-			l.EndsAt.FromTime(&e)
-		}
+		l.StartsAt = l.StartsAt.FromTime(&s)
+		l.EndsAt = l.EndsAt.FromTime(&e)
 
 		locs = append(locs, l)
 	}

@@ -37,9 +37,9 @@ func (f Date) Before(t time.Time) bool {
 
 type DateTime time.Time
 
-func (f *DateTime) FromTime(t *time.Time) {
+func (f *DateTime) FromTime(t *time.Time) *DateTime {
 	a := DateTime(*t)
-	f = &a
+	return &a
 }
 func (f DateTime) MarshalJSON() ([]byte, error) {
 	s := time.Time(f).Format(time.DateTime)
