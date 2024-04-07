@@ -31,6 +31,8 @@ func FetchCommentHandler(db *database.Database) fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "oops unexpected error", err)
 		}
 
+		request.AuthorUsername = eventAuthorUsername
+
 		parentComments, parentIds, err := getParentComments(ctx.Context(), db.GetDb(), request)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "oops unexpected error", err)
@@ -107,6 +109,7 @@ func getParentComments(ctx context.Context, db database.DBTX, param FetchComment
 		}
 
 		comments = append(comments, c)
+
 		parentIds = append(parentIds, c.CommentId)
 	}
 
