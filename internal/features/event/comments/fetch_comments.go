@@ -46,20 +46,25 @@ func FetchCommentHandler(db *database.Database) fiber.Handler {
 
 func getParentComments(ctx context.Context, db database.DBTX, param FetchCommentRequest) ([]Comment, []int64, error) {
 	//TODO switch to sq
-	query := `select comments.id, comments.text, comments.parent_id, users.id, users.profile_image, users.username, comments.created_at
-				from comments 
-				inner join users on users.id = comments.author_id
-				where`
+
+	query := qb.Select("comments.id", "comments.text", "comments.parent_id",
+		"users.id", "users.profile_image", "users.username", "comments.created_at").
+		From("comments").
+		InnerJoin("users on users.id = comments.author_id")
+
 	if param.LastParentId != 0 {
-		query = query + "comments.id < $1 and "
+		query = query.Where(sq.Lt{"comments.id": param.LastParentId})
 	}
-	query = query + ` event_id = $2 and parent_id is null
-				order by comments.id desc, comments.created_at desc
-				limit 10`
 
-	args := []interface{}{param.LastParentId, param.EventId}
+	query = query.Where(sq.Eq{"comments.event_id": param.EventId}).
+		OrderBy("comment.id desc", "comments.created_at desc")
 
-	rows, err := db.Query(ctx, query, args...)
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return nil, nil, err
+	}
+
+	rows, err := db.Query(ctx, stmt, args...)
 	if err != nil {
 		return nil, nil, err
 	}
