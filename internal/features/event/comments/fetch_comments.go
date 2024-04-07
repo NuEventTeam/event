@@ -64,7 +64,6 @@ func getEventAuthor(ctx context.Context, db database.DBTX, eventId int64) (strin
 }
 
 func getParentComments(ctx context.Context, db database.DBTX, param FetchCommentRequest) ([]Comment, []int64, error) {
-	//TODO switch to sq
 
 	query := qb.Select("comments.id", "comments.text", "comments.parent_id",
 		"users.id", "users.profile_image", "users.username", "comments.created_at").
@@ -147,7 +146,7 @@ func getChildComments(ctx context.Context, db database.DBTX, authorUsername stri
 		}
 
 		if c.Author.ProfileImage != nil {
-			*c.Author.ProfileImage = pkg.CDNBaseUrl + *c.Author.ProfileImage
+			*c.Author.ProfileImage = pkg.CDNBaseUrl + "/get/" + *c.Author.ProfileImage
 		}
 		if _, ok := m[*c.ParentId]; !ok {
 			m[*c.ParentId] = []Comment{}
