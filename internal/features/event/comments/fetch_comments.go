@@ -45,7 +45,7 @@ func FetchCommentHandler(db *database.Database) fiber.Handler {
 }
 
 func getParentComments(ctx context.Context, db database.DBTX, param FetchCommentRequest) ([]Comment, []int64, error) {
-
+	//TODO switch to sq
 	query := `select comments.id, comments.text, comments.parent_id, users.id, users.profile_image, users.username, comments.created_at
 				from comments 
 				inner join users on users.id = comments.author_id
