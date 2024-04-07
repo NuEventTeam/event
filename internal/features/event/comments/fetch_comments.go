@@ -50,7 +50,7 @@ func getParentComments(ctx context.Context, db database.DBTX, param FetchComment
 				from comments 
 				inner join users on users.id = comments.author_id
 				where comments.id > $1 and event_id = $2 and parent_id is null
-				order by comments.id, comments.created_at
+				order by comments.id desc, comments.created_at desc
 				limit 10`
 
 	args := []interface{}{param.LastParentId, param.EventId}
@@ -86,7 +86,7 @@ func getChildComments(ctx context.Context, db database.DBTX, parentIds []int64) 
 		"users.id", "users.profile_image", "users.username", "comments.created_at").
 		From("comments").
 		InnerJoin("users on users.id = comments.author_id").
-		Where(sq.Eq{"parent_id": parentIds}).OrderBy("parent_id", "comments.created_at")
+		Where(sq.Eq{"parent_id": parentIds}).OrderBy("parent_id desc", "comments.created_at desc")
 
 	stmt, args, err := query.ToSql()
 	if err != nil {
