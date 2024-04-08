@@ -1,4 +1,4 @@
-package user
+package user_follow
 
 import (
 	"context"
@@ -12,7 +12,7 @@ import (
 	"strconv"
 )
 
-func (u User) FollowUser() fiber.Handler {
+func FollowUser(db *database.Database) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		followerId := ctx.Locals("userId").(int64)
 		userId, err := strconv.ParseInt(ctx.Params("userId"), 10, 64)
@@ -20,7 +20,7 @@ func (u User) FollowUser() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "invalid follower id", err)
 		}
 		log.Println(followerId, userId)
-		err = u.AddFollower(ctx.Context(), userId, followerId)
+		err = AddFollower(ctx.Context(), db, userId, followerId)
 		if err != nil {
 			log.Println(err)
 			return pkg.Error(ctx, fiber.StatusInternalServerError, "something went wrong", err)
@@ -29,8 +29,8 @@ func (u User) FollowUser() fiber.Handler {
 	}
 }
 
-func (e *User) AddFollower(ctx context.Context, userId, followerId int64) error {
-	tx, err := e.db.BeginTx(ctx)
+func AddFollower(ctx context.Context, db *database.Database, userId, followerId int64) error {
+	tx, err := db.BeginTx(ctx)
 	if err != nil {
 		return err
 	}

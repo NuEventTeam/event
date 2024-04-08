@@ -40,6 +40,10 @@ func (h *Handler) SetUpEventRoutes(router *fiber.App) {
 		MustAuth(h.JwtSecret),
 		followers.ListFollowers(h.DB))
 
+	apiV1.Post("/event/fellowship/exist/:eventId",
+		MustAuth(h.JwtSecret),
+		followers.CheckIfFollowed(h.DB))
+
 	apiV1.Post("/event/fellowship/search/:eventId",
 		MustAuth(h.JwtSecret),
 		followers.ListFollowers(h.DB))

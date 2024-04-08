@@ -9,8 +9,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
-	"log"
 	"strconv"
+	"time"
 )
 
 func FollowEvent(db *database.Database) fiber.Handler {
@@ -83,7 +83,13 @@ func checkEventStatus(ctx context.Context, db database.DBTX, eventId int64) erro
 	if err != nil {
 		return err
 	}
-	log.Printf("%+v", location[0])
+
+	if location[0].StartsAt != nil {
+		if time.Now().After(time.Time(*location[0].StartsAt)) {
+			return fmt.Errorf("event regisration is closed")
+		}
+	}
+
 	if location[0].Seats != nil {
 		if *location[0].Seats == *location[0].AttendeesCount {
 			return fmt.Errorf("event is full")

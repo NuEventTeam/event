@@ -1,6 +1,10 @@
 package handlers
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/NuEventTeam/events/internal/features/user/follow"
+	user_profile "github.com/NuEventTeam/events/internal/features/user/profile"
+	"github.com/gofiber/fiber/v2"
+)
 
 func (h *Handler) SetUpUserRoutes(router *fiber.App) {
 	apiV1 := router.Group("/api/v1")
@@ -24,20 +28,35 @@ func (h *Handler) SetUpUserRoutes(router *fiber.App) {
 
 	apiV1.Post("/users/friendship/follow/:userId",
 		MustAuth(h.JwtSecret),
-		h.UserSvc.FollowUser(),
+		user_follow.FollowUser(h.DB),
 	)
 
 	apiV1.Post("/users/friendship/unfollow/:userId",
 		MustAuth(h.JwtSecret),
-		h.UserSvc.UnfollowUser(),
+		user_follow.UnfollowUser(h.DB),
 	)
 	apiV1.Post("/users/friendship/followed",
 		MustAuth(h.JwtSecret),
-		h.UserSvc.ListFollowed(),
+		user_follow.ListFollowed(h.DB),
 	)
 	apiV1.Post("/users/friendship/follower",
 		MustAuth(h.JwtSecret),
-		h.UserSvc.ListFollowers(),
+		user_follow.ListFollowers(h.DB),
+	)
+
+	apiV1.Post("/users/profile/events/followed",
+		MustAuth(h.JwtSecret),
+		user_profile.GetFollowedEventsHandler(h.DB),
+	)
+
+	apiV1.Post("/users/profile/events/history",
+		MustAuth(h.JwtSecret),
+		user_profile.GetOldEventsHandler(h.DB),
+	)
+
+	apiV1.Post("/users/profile/events/favorite",
+		MustAuth(h.JwtSecret),
+		user_profile.GetLikedEventsHandler(h.DB),
 	)
 
 }

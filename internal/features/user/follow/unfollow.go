@@ -1,4 +1,4 @@
-package user
+package user_follow
 
 import (
 	"context"
@@ -10,7 +10,9 @@ import (
 	"strconv"
 )
 
-func (u User) UnfollowUser() fiber.Handler {
+var qb = sq.StatementBuilder.PlaceholderFormat(sq.Dollar)
+
+func UnfollowUser(db *database.Database) fiber.Handler {
 
 	return func(ctx *fiber.Ctx) error {
 		followerId := ctx.Locals("userId").(int64)
@@ -19,7 +21,7 @@ func (u User) UnfollowUser() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "invalid follower id", err)
 		}
 
-		err = u.RemoveFollower(ctx.Context(), userId, followerId)
+		err = RemoveFollower(ctx.Context(), db, userId, followerId)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, "something went wrong", err)
 		}
@@ -27,8 +29,8 @@ func (u User) UnfollowUser() fiber.Handler {
 	}
 }
 
-func (e *User) RemoveFollower(ctx context.Context, userId, followerId int64) error {
-	tx, err := e.db.BeginTx(ctx)
+func RemoveFollower(ctx context.Context, db *database.Database, userId, followerId int64) error {
+	tx, err := db.BeginTx(ctx)
 	if err != nil {
 		return err
 	}

@@ -1,4 +1,4 @@
-package user
+package user_follow
 
 import (
 	"context"
@@ -7,11 +7,11 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-func (u *User) ListFollowers() fiber.Handler {
+func ListFollowers(db *database.Database) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		userId := ctx.Locals("userId").(int64)
 
-		list, err := getFollowers(ctx.Context(), u.db.GetDb(), userId)
+		list, err := getFollowers(ctx.Context(), db.GetDb(), userId)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
