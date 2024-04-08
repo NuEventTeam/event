@@ -85,7 +85,9 @@ func getOldEvents(ctx context.Context, db database.DBTX, userId, lastEventId int
 		f.StartsAt = f.StartsAt.FromTime(&s)
 		f.EndsAt = f.EndsAt.FromTime(&e)
 		f.Date = types.Date(s)
-
+		if f.Price != nil {
+			*f.Price = *f.Price / 100
+		}
 		followedEventsMap[f.ID] = f
 		followedEventsSlice = append(followedEventsSlice, f.ID)
 

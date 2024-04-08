@@ -120,8 +120,8 @@ func (e *Event) CreateEventHandler() fiber.Handler {
 			Attendees: nil,
 		}
 		if request.Price != nil {
-			event.Price = new(int64)
-			*event.Price = int64(*request.Price * 100)
+			event.LocalPrice = new(int64)
+			*event.LocalPrice = int64(*request.Price * 100)
 		}
 		eventID, err := e.createEvent(ctx.Context(), event)
 		if err != nil {

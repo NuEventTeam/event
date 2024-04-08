@@ -131,14 +131,17 @@ func GetEventByID(ctx context.Context, db DBTX, eventID int64) (*models.Event, e
 	}
 	log.Println(stmt)
 	event := &models.Event{}
-
-	err = db.QueryRow(ctx, stmt, params...).Scan(&event.ID, &event.Title, &event.Description, &event.MinAge, &event.MaxAge, &event.Status, &event.CreatedAt, &event.FollowerCount, &event.Price)
+	var price *int64
+	err = db.QueryRow(ctx, stmt, params...).Scan(&event.ID, &event.Title, &event.Description, &event.MinAge, &event.MaxAge, &event.Status, &event.CreatedAt, &event.FollowerCount, &price)
 
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}
 		return nil, err
+	}
+	if price != nil {
+		event.Price = float64(*price) / 100
 	}
 	return event, nil
 }
