@@ -71,7 +71,7 @@ func increaseFollowerCount(ctx context.Context, db database.DBTX, userId int64) 
 }
 
 func checkEventStatus(ctx context.Context, db database.DBTX, eventId int64) error {
-	event, err := database.GetEventByID(ctx, db, eventId)
+	event, err := database.GetEventByID(ctx, db, eventId, 0)
 	if err != nil {
 		return err
 	}
