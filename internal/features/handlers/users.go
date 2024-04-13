@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"github.com/NuEventTeam/events/internal/features/search"
 	"github.com/NuEventTeam/events/internal/features/user/follow"
 	user_profile "github.com/NuEventTeam/events/internal/features/user/profile"
 	"github.com/gofiber/fiber/v2"
@@ -58,5 +59,7 @@ func (h *Handler) SetUpUserRoutes(router *fiber.App) {
 		MustAuth(h.JwtSecret),
 		user_profile.GetLikedEventsHandler(h.DB),
 	)
+
+	apiV1.Post("/users/profile/search/", search.SearchUser(h.DB))
 
 }

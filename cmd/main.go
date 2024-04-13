@@ -47,6 +47,5 @@ func main() {
 	<-stop
 
 	application.Stop()
-
 	log.Println("application stopped")
 }

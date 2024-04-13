@@ -197,7 +197,6 @@ func (u User) CreateUserHandler() fiber.Handler {
 			Username:     form.Value["username"][0],
 			ProfileImage: image.Filename,
 			BirthDate:    birthDate,
-			Phone:        form.Value["phone"][0],
 			Firstname:    form.Value["firstname"][0],
 			Lastname:     &form.Value["lastname"][0],
 			Preferences:  categoryIds,
