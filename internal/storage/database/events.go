@@ -121,13 +121,9 @@ func AddEventImage(ctx context.Context, db DBTX, eventID int64, image ...assets.
 
 }
 
-func GetEventByID(ctx context.Context, db DBTX, eventID int64, lastId int64) (*models.Event, error) {
+func GetEventByID(ctx context.Context, db DBTX, eventID int64) (*models.Event, error) {
 	query := qb.Select("id", "title", "description", "age_min", "age_max", "status", "created_at", "follower_count", "price").
 		From("events")
-
-	if lastId > 0 {
-		query = query.Where(sq.Gt{"id": lastId})
-	}
 
 	if eventID > 0 {
 		query = query.Where(sq.Eq{"id": eventID})

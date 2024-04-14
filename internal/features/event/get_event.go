@@ -17,6 +17,21 @@ import (
 
 func (e Event) GetEventByIDHandler() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
+		eventID, err := ctx.ParamsInt("eventId", 0)
+		if err != nil {
+			return pkg.Error(ctx, fiber.StatusInternalServerError, "not proper id", err)
+
+		}
+		event, err := e.getEventByID(ctx.Context(), int64(eventID))
+		if err != nil {
+			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
+		}
+
+		return pkg.Success(ctx, event)
+	}
+}
+func (e Event) GetAllEvenst() fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
 
 		lastId := ctx.QueryInt("lastId", 0)
 		eventsMap, err := e.getEventAllEvents(ctx.Context(), e.db.GetDb(), int64(lastId))
@@ -31,9 +46,8 @@ func (e Event) GetEventByIDHandler() fiber.Handler {
 		return pkg.Success(ctx, events)
 	}
 }
-
-func (e *Event) getEventByID(ctx context.Context, eventId int64, lastId int64) (*models.Event, error) {
-	event, err := database.GetEventByID(ctx, e.db.GetDb(), eventId, lastId)
+func (e *Event) getEventByID(ctx context.Context, eventId int64) (*models.Event, error) {
+	event, err := database.GetEventByID(ctx, e.db.GetDb(), eventId)
 	if err != nil {
 		return nil, err
 	}
