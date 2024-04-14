@@ -127,7 +127,7 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 	if err != nil {
 		return nil, nil, err
 	}
-	log.Println(stmt)
+	log.Println(stmt, args)
 	rows, err := db.Query(ctx, stmt, args...)
 	if err != nil {
 		return nil, nil, err
