@@ -142,7 +142,7 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 			endsAt   time.Time
 		)
 
-		err := rows.Scan(&e.Id, &e.Title, &e.AgeMin, &e.LikeCount, &e.FollowerCount, &e.Author.ID, &e.Author.Username, &e.Author.ProfileImage,
+		err := rows.Scan(&e.Id, &e.Title, &e.AgeMin, &e.LikeCount, &e.FollowerCount, &e.Author.Username, &e.Author.ID, &e.Author.ProfileImage,
 			&e.Location.Address, &e.Location.Log, &e.Location.Lat, &e.Location.Seats, &e.Location.AttendeesCount, &startsAt, &endsAt,
 			&e.Distance)
 		if err != nil {
