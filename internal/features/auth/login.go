@@ -31,8 +31,9 @@ type LoginRequest struct {
 }
 
 type LoginResponse struct {
-	AuthToken AuthToken `json:"tokens"`
-	UserID    int64     `json:"user_id"`
+	AuthToken AuthToken   `json:"tokens"`
+	UserID    int64       `json:"user_id"`
+	User      models.User `json:"user"`
 }
 
 func (a *Auth) LoginHandler() fiber.Handler {
@@ -71,11 +72,16 @@ func (a *Auth) LoginHandler() fiber.Handler {
 
 		}
 
+		user, err := database.GetUser(ctx.Context(), a.db.GetDb(), database.GetUserArgss{UserID: &userID})
+		if err != nil {
+			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
+		}
 		response := LoginResponse{
 			AuthToken: AuthToken{
 				AccessToken:  accessToken,
 				RefreshToken: refreshToken.Token,
 			},
+			User:   user,
 			UserID: userID,
 		}
 
