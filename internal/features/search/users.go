@@ -51,7 +51,7 @@ func getUserByUsername(ctx context.Context, db database.DBTX, username string, l
 	query := `select users.id, users.username, users.profile_image 
 				from users
 				where username LIKE $2 and id  > $3
-				order by users.followers_count 
+				order by users.follower_count 
 				limit 15`
 
 	rows, err := db.Query(ctx, query, "%"+username+"%", lastId)
