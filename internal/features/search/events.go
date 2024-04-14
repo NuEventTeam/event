@@ -88,7 +88,7 @@ type Event struct {
 }
 
 func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (map[int64]Event, []int64, error) {
-	query := qb.Select("events.id,title,age_min, like_count, follower_count, username,user_id,profile_image" +
+	query := qb.Select("events.id,title,age_min, like_count, events.follower_count, username,user_id,profile_image" +
 		"address, longitude, latitude, seats, attendees_count, starts_at, ends_at").
 		From("events").
 		InnerJoin("event_locations on events.id = event_locations.event_id").
