@@ -50,7 +50,7 @@ type User struct {
 func getUserByUsername(ctx context.Context, db database.DBTX, username string, lastId int64) (map[int64]User, []int64, error) {
 	query := `select users.id, users.username, users.profile_image 
 				from users
-				where username LIKE $2 and id  > $3
+				where username LIKE $1 and id > $2
 				order by users.follower_count 
 				limit 15`
 
