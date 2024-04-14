@@ -14,7 +14,7 @@ func (h *Handler) SetUpEventRoutes(router *fiber.App) {
 	apiV1.Get("/categories", h.EventSvc.GetAllCategoriesHandler())
 
 	apiV1.Post("/event/create", MustAuth(h.JwtSecret), h.EventSvc.CreateEventHandler())
-	apiV1.Get("/event/show/all", h.EventSvc.GetEventByIDHandler())
+	apiV1.Get("/event/show/all", h.EventSvc.GetAllEvenst())
 
 	apiV1.Get("/event/show/:eventId", h.EventSvc.GetEventByIDHandler())
 
