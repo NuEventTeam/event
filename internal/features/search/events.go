@@ -91,7 +91,7 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 	query := qb.Select("events.id,title,age_min, like_count, follower_count, username,user_id,url" +
 		"address, longitude, latitude, seats, attendees_count, starts_at, ends_at").
 		From("events").
-		InnerJoin("events_locations on events.id = event_locations.event_id").
+		InnerJoin("event_locations on events.id = event_locations.event_id").
 		InnerJoin("event_managers on events.id = event_managers.event_id").
 		InnerJoin("event_role_permissions on event_managers.role_id = event_role_permissions.role_id").
 		InnerJoin("event_categories on events.id = event_categories.event_id").
