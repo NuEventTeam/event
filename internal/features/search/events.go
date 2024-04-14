@@ -110,8 +110,9 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 		query = query.Where(sq.Eq{"event_categories.event_id": params.Categories})
 	}
 
-	query = query.Where(sq.Like{"events.title": "%" + params.Text + "%"})
-	query = query.Where(sq.Like{"events.description": "%" + params.Text + "%"})
+	query = query.Where(sq.Or{
+		sq.Like{"events.title": "%" + params.Text + "%"},
+		sq.Like{"events.description": "%" + params.Text + "%"}})
 
 	query = query.Column(`2 * asin(sqrt(
 		pow(sin(radians(`+sq.Placeholders(1)+`- latitude) / 2), 2) +
