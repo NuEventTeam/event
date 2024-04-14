@@ -8,6 +8,7 @@ import (
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/NuEventTeam/events/pkg/types"
 	"github.com/gofiber/fiber/v2"
+	"log"
 	"time"
 )
 
@@ -125,7 +126,7 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 	if err != nil {
 		return nil, nil, err
 	}
-
+	log.Println(stmt)
 	rows, err := db.Query(ctx, stmt, args...)
 	if err != nil {
 		return nil, nil, err
