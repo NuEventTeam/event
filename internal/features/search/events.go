@@ -47,7 +47,7 @@ func SearchEvents(db *database.Database) fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, "oops something went wrong", err)
 		}
 
-		categoies, err := getCategories(ctx.Context(), db.GetDb(), eventIds)
+		categories, err := getCategories(ctx.Context(), db.GetDb(), eventIds)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, "oops something went wrong", err)
 		}
@@ -55,7 +55,7 @@ func SearchEvents(db *database.Database) fiber.Handler {
 		var events []Event
 
 		for id, event := range eventsMap {
-			event.Categories = categoies[id]
+			event.Categories = categories[id]
 			events = append(events, event)
 		}
 
