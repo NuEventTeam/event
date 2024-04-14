@@ -181,7 +181,7 @@ func getEventCategories(ctx context.Context, db database.DBTX, eventIds []int64)
 	defer rows.Close()
 
 	var (
-		categories map[int64][]Categories
+		categories = map[int64][]Categories{}
 	)
 
 	for rows.Next() {
