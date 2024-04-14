@@ -96,7 +96,7 @@ func GetUser(ctx context.Context, db DBTX, args GetUserArgss) (models.User, erro
 		Where(sq.Eq{"deleted_at": nil})
 
 	if args.UserID != nil {
-		query = query.Where(sq.Eq{"user_id": *args.UserID})
+		query = query.Where(sq.Eq{"id": *args.UserID})
 	}
 	if args.Username != nil {
 		query = query.Where(sq.Eq{"username": *args.Username})
