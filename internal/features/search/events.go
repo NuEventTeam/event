@@ -117,7 +117,7 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 )) * 6371 AS distance_in_km`, params.Coordinate.CenterLat, params.Coordinate.CenterLat, params.Coordinate.CenterLog)
 
 	for _, val := range params.Sort {
-		query = query.OrderBy(fmt.Sprintf("%s %s", val.By, val.By))
+		query = query.OrderBy(fmt.Sprintf("%s %s", val.By, val.Order))
 	}
 
 	stmt, args, err := query.ToSql()
