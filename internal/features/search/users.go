@@ -62,7 +62,7 @@ func getUserByUsername(ctx context.Context, db database.DBTX, username string, l
 
 	var (
 		userIds []int64
-		users   map[int64]User
+		users   = map[int64]User{}
 	)
 
 	for rows.Next() {
@@ -99,7 +99,7 @@ func getCategories(ctx context.Context, db database.DBTX, userIds []int64) (map[
 	defer rows.Close()
 
 	var (
-		categories map[int64][]Categories
+		categories = map[int64][]Categories{}
 	)
 
 	for rows.Next() {
