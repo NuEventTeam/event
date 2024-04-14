@@ -103,7 +103,7 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 			sq.LtOrEq{"latitude": params.Coordinate.MaxLat}}).
 		Where(sq.And{
 			sq.GtOrEq{"longitude": params.Coordinate.MinLon},
-			sq.LtOrEq{"longitude": params.Coordinate.MaxLat}}).
+			sq.LtOrEq{"longitude": params.Coordinate.MaxLon}}).
 		Where(sq.GtOrEq{"age_min": params.MinAge}).Where(sq.Gt{"events.id": params.LastId})
 
 	if len(params.Categories) > 0 {
