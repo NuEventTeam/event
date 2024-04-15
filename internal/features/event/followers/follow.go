@@ -29,7 +29,7 @@ func FollowEvent(db *database.Database) fiber.Handler {
 		}
 
 		log.Println("here we are adding follower")
-
+		log.Println(userId, eventId)
 		err = addFollower(ctx.Context(), db, eventId, userId)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "something went wrong", err)
