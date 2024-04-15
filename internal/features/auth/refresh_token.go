@@ -8,6 +8,7 @@ import (
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgx/v5"
+	"log"
 )
 
 type RefreshTokenRequest struct {
@@ -32,6 +33,7 @@ func (a *Auth) RefreshTokenHandler() fiber.Handler {
 		if token == nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "token expired")
 		}
+		log.Println(*token.UserId)
 		accessToken, err := a.GetJWT(*token.UserId, token.UserAgent)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, "something went wrong", err)
