@@ -27,6 +27,11 @@ func (h *Handler) SetUpUserRoutes(router *fiber.App) {
 		h.UserSvc.GetByUsername(),
 	)
 
+	apiV1.Post("users/friendship/check/:userId",
+		MustAuth(h.JwtSecret),
+		user_follow.CheckFollowed(h.DB),
+	)
+
 	apiV1.Post("/users/friendship/follow/:userId",
 		MustAuth(h.JwtSecret),
 		user_follow.FollowUser(h.DB),
