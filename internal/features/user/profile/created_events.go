@@ -23,7 +23,7 @@ func GetOwnEvents(ctx context.Context, db database.DBTX, userId, lastEventId int
 		InnerJoin("event_locations on event_locations.event_id = events.id").
 		InnerJoin("event_managers on event_managers.event_id = event_locations.event_id").
 		InnerJoin("event_roles on event_locations.event_id = event_roles.event_id").
-		InnerJoin("event_role_permissions on event_roles.role_id = event_managers.role_id").
+		InnerJoin("event_role_permissions on event_roles.id = event_managers.role_id").
 		Where(sq.Eq{"event_role_permissions.permission_id": pkg.PermissionUpdate}).
 		Where(sq.Eq{"event_managers.user_id": userId})
 
