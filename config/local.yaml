@@ -1,4 +1,4 @@
-env: "local"
+env: "prod"
 http:
   port: 8001
   timeout: 5m
