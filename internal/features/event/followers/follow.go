@@ -29,6 +29,7 @@ func FollowEvent(db *database.Database) fiber.Handler {
 		}
 
 		log.Println("here we are adding follower")
+
 		err = addFollower(ctx.Context(), db, eventId, userId)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "something went wrong", err)
@@ -49,7 +50,7 @@ func addFollower(ctx context.Context, db *database.Database, eventId, followerId
 	if err != nil {
 		var e *pgconn.PgError
 		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
-			log.Println("trest")
+			log.Println("trest", err)
 			return nil
 		}
 		return err
