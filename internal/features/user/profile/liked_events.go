@@ -16,12 +16,7 @@ func GetLikedEventsHandler(db *database.Database) fiber.Handler {
 
 		lastUserId := ctx.QueryInt("lastEventId", 0)
 
-		followed, ids, err := getLikedEvents(ctx.Context(), db.GetDb(), userId, int64(lastUserId))
-		if err != nil {
-			return pkg.Error(ctx, fiber.StatusBadRequest, SomethingWentWrongMsg, err)
-		}
-
-		err = getEventImages(ctx.Context(), db.GetDb(), ids, followed)
+		followed, err := GetLikedEvents(ctx.Context(), db.GetDb(), userId, int64(lastUserId))
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, SomethingWentWrongMsg, err)
 		}
@@ -36,7 +31,7 @@ func GetLikedEventsHandler(db *database.Database) fiber.Handler {
 	}
 }
 
-func getLikedEvents(ctx context.Context, db database.DBTX, userId, lastEventId int64) (map[int64]FollowedEvent, []int64, error) {
+func GetLikedEvents(ctx context.Context, db database.DBTX, userId, lastEventId int64) (map[int64]FollowedEvent, error) {
 	query := qb.Select(` 
 					events.id,
 					events.title, 
@@ -58,12 +53,12 @@ func getLikedEvents(ctx context.Context, db database.DBTX, userId, lastEventId i
 
 	stmt, args, err := query.ToSql()
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 
 	rows, err := db.Query(ctx, stmt, args...)
 	if err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	defer rows.Close()
 
@@ -78,7 +73,7 @@ func getLikedEvents(ctx context.Context, db database.DBTX, userId, lastEventId i
 
 		err := rows.Scan(&f.ID, &f.Title, &f.LikesCount, &f.Price, &f.Address, &s, &e, &f.AttendeesCount)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		f.StartsAt = f.StartsAt.FromTime(&s)
@@ -91,6 +86,10 @@ func getLikedEvents(ctx context.Context, db database.DBTX, userId, lastEventId i
 		followedEventsSlice = append(followedEventsSlice, f.ID)
 
 	}
-	return followedEventsMap, followedEventsSlice, nil
+	err = getEventImages(ctx, db, followedEventsSlice, followedEventsMap)
+	if err != nil {
+		return nil, err
+	}
+	return followedEventsMap, nil
 
 }

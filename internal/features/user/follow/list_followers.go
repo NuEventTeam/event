@@ -11,7 +11,7 @@ func ListFollowers(db *database.Database) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		userId := ctx.Locals("userId").(int64)
 
-		list, err := getFollowers(ctx.Context(), db.GetDb(), userId)
+		list, err := GetFollowers(ctx.Context(), db.GetDb(), userId)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
@@ -26,7 +26,7 @@ type Follower struct {
 	ProfileImage *string `json:"profileImage"`
 }
 
-func getFollowers(ctx context.Context, db database.DBTX, userId int64) ([]Follower, error) {
+func GetFollowers(ctx context.Context, db database.DBTX, userId int64) ([]Follower, error) {
 	query := `select users.id, users.username, users.profile_image 
 				from users
 				inner join user_followers on users.id = user_followers.follower_id
