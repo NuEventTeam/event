@@ -522,6 +522,7 @@ func AddEventFollower(ctx context.Context, db DBTX, eventId, followerId int64) e
 	if err != nil {
 		return err
 	}
+	log.Println(stmt, args)
 
 	_, err = db.Exec(ctx, stmt, args...)
 	return err
