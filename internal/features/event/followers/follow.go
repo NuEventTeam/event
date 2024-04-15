@@ -9,6 +9,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
+	"log"
 	"strconv"
 	"time"
 )
@@ -51,11 +52,12 @@ func addFollower(ctx context.Context, db *database.Database, eventId, followerId
 		}
 		return err
 	}
-
+	log.Println("added f")
 	err = increaseFollowerCount(ctx, tx, eventId)
 	if err != nil {
 		return err
 	}
+	log.Println("increade count")
 
 	if err := tx.Commit(ctx); err != nil {
 		return err
