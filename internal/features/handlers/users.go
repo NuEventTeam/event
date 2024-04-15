@@ -20,7 +20,7 @@ func (h *Handler) SetUpUserRoutes(router *fiber.App) {
 		h.UserSvc.CreateMobileUserHandler(),
 	)
 
-	apiV1.Get("/user/:username", h.UserSvc.GetByUsername())
+	apiV1.Get("/user/:username", MustAuth(h.JwtSecret), h.UserSvc.GetByUsername())
 
 	apiV1.Get("/check-username/:username",
 		MustAuth(h.JwtSecret),
