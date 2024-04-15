@@ -76,6 +76,10 @@ func (a *Auth) LoginHandler() fiber.Handler {
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
+		if user.ProfileImage != nil {
+			profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
+			user.ProfileImage = &profileImgUrl
+		}
 		response := LoginResponse{
 			AuthToken: AuthToken{
 				AccessToken:  accessToken,

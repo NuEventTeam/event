@@ -116,8 +116,15 @@ func (u User) CreateMobileUserHandler() fiber.Handler {
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 		}
-
-		return pkg.Success(ctx, fiber.Map{"username": request.Username})
+		user, err := database.GetUser(ctx.Context(), u.db.GetDb(), database.GetUserArgss{UserID: &userId})
+		if err != nil {
+			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
+		}
+		if user.ProfileImage != nil {
+			profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
+			user.ProfileImage = &profileImgUrl
+		}
+		return pkg.Success(ctx, fiber.Map{"username": request.Username, "user": user})
 	}
 }
 
@@ -205,8 +212,15 @@ func (u User) CreateUserHandler() fiber.Handler {
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 		}
-
-		return pkg.Success(ctx, fiber.Map{"username": form.Value["username"][0]})
+		user, err := database.GetUser(ctx.Context(), u.db.GetDb(), database.GetUserArgss{UserID: &userId})
+		if err != nil {
+			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
+		}
+		if user.ProfileImage != nil {
+			profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
+			user.ProfileImage = &profileImgUrl
+		}
+		return pkg.Success(ctx, fiber.Map{"username": form.Value["username"][0], "user": user})
 
 	}
 }
