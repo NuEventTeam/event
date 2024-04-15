@@ -76,7 +76,7 @@ func (u *User) GetByUsername() fiber.Handler {
 		}
 
 		userId := ctx.Locals("userId")
-		if userId != nil {
+		if userId != nil && userId.(int64) == user.UserID {
 			response["events"] = fiber.Map{
 				"followed":  followedEvents,
 				"favourite": followedEvents,
