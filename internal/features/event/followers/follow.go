@@ -49,6 +49,7 @@ func addFollower(ctx context.Context, db *database.Database, eventId, followerId
 	if err != nil {
 		var e *pgconn.PgError
 		if errors.As(err, &e) && e.Code == pgerrcode.UniqueViolation {
+			log.Println("trest")
 			return nil
 		}
 		return err
