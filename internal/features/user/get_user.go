@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	user_follow "github.com/NuEventTeam/events/internal/features/user/follow"
 	user_profile "github.com/NuEventTeam/events/internal/features/user/profile"
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/internal/storage/database"
@@ -62,13 +63,27 @@ func (u *User) GetByUsername() fiber.Handler {
 			ownEvents = append(ownEvents, val)
 		}
 
-		return pkg.Success(ctx, fiber.Map{
-			"user":      user,
-			"followed":  followedEvents,
-			"favourite": likedEvents,
-			"past":      pastEvents,
-			"own":       ownEvents,
-		})
+		followedUsers, err := user_follow.GetFollowed(ctx.Context(), u.db.GetDb(), user.UserID)
+		if err != nil {
+			if err != nil {
+				return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
+			}
+		}
+		response := fiber.Map{
+			"user":          user,
+			"own":           ownEvents,
+			"followed_user": followedUsers,
+		}
+
+		userId := ctx.Locals("userId")
+		if userId != nil {
+			response["events"] = fiber.Map{
+				"followed":  followedEvents,
+				"favourite": followedEvents,
+				"past":      followedEvents}
+		}
+
+		return pkg.Success(ctx, response)
 	}
 
 }
