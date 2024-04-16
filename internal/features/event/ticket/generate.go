@@ -48,7 +48,7 @@ func GenerateTicket(db *database.Database, cache *keydb.Cache, secret string) fi
 }
 
 func checkIfFollows(ctx context.Context, db database.DBTX, eventId, userId int64) (bool, error) {
-	query := `select count(*) from events inner join event_followers where status = 1 and events.id = $1 and event_followers.user_id = $2`
+	query := `select count(*) from events inner join event_followers on event_followers.event_id = events.id where status = 1 and events.id = $1 and event_followers.user_id = $2`
 
 	args := []interface{}{eventId, userId}
 	var count int64
