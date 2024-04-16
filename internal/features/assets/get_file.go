@@ -13,7 +13,7 @@ func (s Assets) GetFile() fiber.Handler {
 		}
 
 		path := ctx.Params("namespace") + "/" + ctx.Params("key") + "/" + ctx.Params("filename")
-
+		log.Println(path)
 		exist := s.KeyExists(ctx.Context(), path)
 		if !exist {
 			return ctx.SendStatus(fiber.StatusNotFound)
