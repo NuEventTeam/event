@@ -21,7 +21,7 @@ cache:
   index: 1
 cdn:
   url: "http://104.248.4.202:8001"
-  key_id: AKIAVRUVQ7CDRC6V74MW
+  key_id: AKIAVRUVQ7CDZ6GWUDEB
   secret_access_key: 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
   region: us-east-1
   bucket_name: fast-file-transfer-1

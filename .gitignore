@@ -1,3 +1,4 @@
 .idea
 config/prod.yaml
 ./cmd/index.html
+./config/local.yaml
