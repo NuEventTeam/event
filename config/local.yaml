@@ -16,7 +16,7 @@ database:
 cache:
   prefix: "event"
   port: "6379"
-  host: "key-db"
+  host: "keydb"
   password: "auth"
   index: 1
 cdn:
