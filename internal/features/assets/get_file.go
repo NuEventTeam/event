@@ -1,6 +1,9 @@
 package assets
 
-import "github.com/gofiber/fiber/v2"
+import (
+	"github.com/gofiber/fiber/v2"
+	"log"
+)
 
 func (s Assets) GetFile() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
@@ -16,7 +19,7 @@ func (s Assets) GetFile() fiber.Handler {
 			return ctx.SendStatus(fiber.StatusNotFound)
 		}
 		url, err := s.GetObjectURL(path)
-
+		log.Println(url)
 		if err != nil {
 			return ctx.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"ok": false, "err": err})
 		}
