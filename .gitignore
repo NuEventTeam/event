@@ -1,6 +1,4 @@
 .idea
-config/prod.yaml
+config/*
 ./cmd/index.html
-config/local.yaml
-user
 static
