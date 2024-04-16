@@ -4,6 +4,7 @@ import (
 	"github.com/NuEventTeam/events/internal/features/event/comments"
 	"github.com/NuEventTeam/events/internal/features/event/followers"
 	"github.com/NuEventTeam/events/internal/features/event/like"
+	"github.com/NuEventTeam/events/internal/features/event/ticket "
 	"github.com/NuEventTeam/events/internal/features/search"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
@@ -60,6 +61,14 @@ func (h *Handler) SetUpEventRoutes(router *fiber.App) {
 	apiV1.Post("/event/like/:eventId",
 		MustAuth(h.JwtSecret),
 		like.LikeEvent(h.DB))
+
+	apiV1.Post("/event/ticket/get/:eventId",
+		MustAuth(h.JwtSecret),
+		ticket.GenerateTicket(h.DB, h.Cache, h.JwtSecret))
+
+	apiV1.Post("/event/ticket/verify/:eventId",
+		MustAuth(h.JwtSecret),
+		ticket.VerifyTicket(h.DB, h.Cache, h.JwtSecret))
 
 	apiV1.Post("/event/search/",
 		search.SearchEvents(h.DB))

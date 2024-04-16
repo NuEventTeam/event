@@ -134,7 +134,7 @@ func (e Event) UpdateEvent(ctx context.Context, event models.Event) error {
 
 	if len(event.Images) > 0 {
 		for i, c := range event.Images {
-			event.Images[i].SetFilename(fmt.Sprint(pkg.EventNamespace, "/", event.ID, "/", c.Filename))
+			event.Images[i].SetFilename(fmt.Sprint(pkg.EventNamespace, "/", event.ID, "/", *c.Filename))
 		}
 		err := database.AddEventImage(ctx, tx, event.ID, event.Images...)
 		if err != nil {

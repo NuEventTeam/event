@@ -11,6 +11,7 @@ import (
 	"github.com/NuEventTeam/events/internal/features/sms_provider"
 	"github.com/NuEventTeam/events/internal/features/user"
 	"github.com/NuEventTeam/events/internal/storage/database"
+	"github.com/NuEventTeam/events/internal/storage/keydb"
 	"log"
 	"os"
 	"os/signal"
@@ -22,6 +23,7 @@ func main() {
 	cfg := config.MustLoad()
 
 	db := database.NewDatabase(context.Background(), cfg.Database)
+	cache := keydb.New(context.Background(), cfg.Cache)
 
 	sms := sms_provider.New(cfg.SMS)
 	assetsSvc := assets.NewS3Storage(cfg.CDN)
@@ -32,7 +34,7 @@ func main() {
 
 	authSvc := auth.New(db, sms, cfg.JWT)
 
-	httpHandler := handlers.New(eventSvc, userSvc, assetsSvc, authSvc, cfg.JWT.Secret, db)
+	httpHandler := handlers.New(eventSvc, cache, userSvc, assetsSvc, authSvc, cfg.JWT.Secret, db)
 
 	application := app.New(cfg.Http.Port, httpHandler)
 

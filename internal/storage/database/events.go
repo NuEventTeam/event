@@ -210,6 +210,9 @@ func GetEventImages(ctx context.Context, db DBTX, eventId int64, imgIds ...int64
 
 	rows, err := db.Query(ctx, stmt, params...)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
