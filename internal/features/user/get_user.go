@@ -19,7 +19,7 @@ func (u *User) GetByUsername() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 		}
 		if user.ProfileImage != nil {
-			profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
+			profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, *user.ProfileImage)
 			user.ProfileImage = &profileImgUrl
 		}
 		followedEventsMap, err := user_profile.GetFollowedEvents(ctx.Context(), u.db.GetDb(), user.UserID, 0)

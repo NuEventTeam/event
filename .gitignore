@@ -1,4 +1,7 @@
 .idea
 config/prod.yaml
 ./cmd/index.html
-./config/local.yaml
+config/local.yaml
+event
+user
+static

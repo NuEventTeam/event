@@ -211,7 +211,7 @@ func (e *Event) getEventAllEvents(ctx context.Context, db database.DBTX, lastId 
 		if err != nil {
 			return nil, err
 		}
-		i.Url = pkg.CDNBaseUrl + "/get/" + i.Url
+		i.Url = pkg.CDNBaseUrl + i.Url
 		val := events[i.EventID]
 		val.Images = append(val.Images, i)
 		events[i.EventID] = val

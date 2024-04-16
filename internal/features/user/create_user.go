@@ -121,7 +121,7 @@ func (u User) CreateMobileUserHandler() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
 		if user.ProfileImage != nil {
-			profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
+			profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, *user.ProfileImage)
 			user.ProfileImage = &profileImgUrl
 		}
 		return pkg.Success(ctx, fiber.Map{"username": request.Username, "user": user})
@@ -217,7 +217,7 @@ func (u User) CreateUserHandler() fiber.Handler {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
 		if user.ProfileImage != nil {
-			profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, "/get/", *user.ProfileImage)
+			profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, *user.ProfileImage)
 			user.ProfileImage = &profileImgUrl
 		}
 		return pkg.Success(ctx, fiber.Map{"username": form.Value["username"][0], "user": user})

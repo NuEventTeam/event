@@ -38,7 +38,7 @@ func GetFollowed(ctx context.Context, db database.DBTX, userId int64) ([]Followe
 			return nil, err
 		}
 		if f.ProfileImage != nil {
-			*f.ProfileImage = pkg.CDNBaseUrl + "/get/" + *f.ProfileImage
+			*f.ProfileImage = pkg.CDNBaseUrl + *f.ProfileImage
 		}
 		followers = append(followers, f)
 	}

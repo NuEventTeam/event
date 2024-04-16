@@ -139,7 +139,7 @@ func getEventImages(ctx context.Context, db database.DBTX, eventIds []int64, eve
 			return err
 		}
 		if url != nil {
-			*url = pkg.CDNBaseUrl + "/get/" + *url
+			*url = pkg.CDNBaseUrl + *url
 			val, _ := events[eventId]
 			val.Images = append(events[eventId].Images, *url)
 			events[eventId] = val

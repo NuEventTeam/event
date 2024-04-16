@@ -73,7 +73,7 @@ func getCommentAuthor(ctx context.Context, db database.DBTX, userId int64) (Auth
 		return Author{}, err
 	}
 	if author.ProfileImage != nil {
-		*author.ProfileImage = pkg.CDNBaseUrl + "/get/" + *author.ProfileImage
+		*author.ProfileImage = pkg.CDNBaseUrl + *author.ProfileImage
 	}
 	return author, nil
 

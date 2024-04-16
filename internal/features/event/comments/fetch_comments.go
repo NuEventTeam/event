@@ -105,7 +105,7 @@ func getParentComments(ctx context.Context, db database.DBTX, param FetchComment
 			c.Author.IsEventAuthor = true
 		}
 		if c.Author.ProfileImage != nil {
-			*c.Author.ProfileImage = pkg.CDNBaseUrl + "/get/" + *c.Author.ProfileImage
+			*c.Author.ProfileImage = pkg.CDNBaseUrl + *c.Author.ProfileImage
 		}
 
 		comments = append(comments, c)
@@ -149,7 +149,7 @@ func getChildComments(ctx context.Context, db database.DBTX, authorUsername stri
 		}
 
 		if c.Author.ProfileImage != nil {
-			*c.Author.ProfileImage = pkg.CDNBaseUrl + "/get/" + *c.Author.ProfileImage
+			*c.Author.ProfileImage = pkg.CDNBaseUrl + *c.Author.ProfileImage
 		}
 		if _, ok := m[*c.ParentId]; !ok {
 			m[*c.ParentId] = []Comment{}

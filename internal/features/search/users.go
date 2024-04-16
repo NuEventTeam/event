@@ -72,7 +72,7 @@ func getUserByUsername(ctx context.Context, db database.DBTX, username string, l
 			return nil, nil, err
 		}
 		if u.ProfileImage != nil {
-			*u.ProfileImage = pkg.CDNBaseUrl + "/get/" + *u.ProfileImage
+			*u.ProfileImage = pkg.CDNBaseUrl + *u.ProfileImage
 		}
 		userIds = append(userIds, u.ID)
 
