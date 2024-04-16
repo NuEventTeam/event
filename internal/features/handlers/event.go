@@ -4,7 +4,7 @@ import (
 	"github.com/NuEventTeam/events/internal/features/event/comments"
 	"github.com/NuEventTeam/events/internal/features/event/followers"
 	"github.com/NuEventTeam/events/internal/features/event/like"
-	"github.com/NuEventTeam/events/internal/features/event/ticket "
+	"github.com/NuEventTeam/events/internal/features/event/ticket"
 	"github.com/NuEventTeam/events/internal/features/search"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
