@@ -41,7 +41,7 @@ func VerifyTicket(db *database.Database, cache *keydb.Cache, secret string) fibe
 }
 
 func setAttended(ctx context.Context, db database.DBTX, eventId, userId int64) error {
-	query := `update event_followers set atteded = true , updated_at = now() where event_id = $1 and user_id = $2`
+	query := `update event_followers set attended = true , updated_at = now() where event_id = $1 and user_id = $2`
 
 	args := []interface{}{eventId, userId}
 
