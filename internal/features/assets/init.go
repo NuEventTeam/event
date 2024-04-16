@@ -40,7 +40,7 @@ func (s *Assets) GetObjectURL(objectKey string) (*v4.PresignedHTTPRequest, error
 	request, err := s.presignedClient.PresignGetObject(context.TODO(), &s3.GetObjectInput{
 		Bucket: aws.String(s.bucket),
 		Key:    aws.String(objectKey),
-	}, s3.WithPresignExpires(time.Hour*12))
+	}, s3.WithPresignExpires(time.Hour*24))
 
 	if err != nil {
 		return nil, err

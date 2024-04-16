@@ -68,6 +68,7 @@ func (h *Handler) SetUpEventRoutes(router *fiber.App) {
 
 	apiV1.Post("/event/ticket/verify/:eventId",
 		MustAuth(h.JwtSecret),
+		h.HasPermission(pkg.PermissionVerify),
 		ticket.VerifyTicket(h.DB, h.Cache, h.JwtSecret))
 
 	apiV1.Post("/event/search/",
