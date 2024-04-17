@@ -1,8 +1,8 @@
 package assets
 
 import (
+	"bufio"
 	"context"
-	"io"
 	"log"
 	"os"
 	"path"
@@ -26,7 +26,6 @@ func (s *Assets) Upload(ctx context.Context, images ...Image) {
 
 			absPath := path.Join("./static", *img.Filename)
 			dir, _ := path.Split(absPath)
-			log.Println(absPath)
 			err := os.MkdirAll(dir, os.ModePerm)
 			if err != nil {
 				log.Println(err)
@@ -37,7 +36,21 @@ func (s *Assets) Upload(ctx context.Context, images ...Image) {
 				log.Println(err)
 				return
 			}
-			io.Copy(file, img.file)
+			//io.W
+			writer := bufio.NewWriter(file)
+			scanner := bufio.NewScanner(img.file)
+			for scanner.Scan() {
+				text := scanner.Bytes()
+				text = append(text, '\n')
+				_, err := writer.Write(append(text)[:])
+				if err != nil {
+					log.Println(err)
+					return
+				}
+
+			}
+
+			err = writer.Flush()
 			if err != nil {
 				log.Println("error while uploading to s3")
 			}
