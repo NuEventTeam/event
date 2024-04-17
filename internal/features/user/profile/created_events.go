@@ -2,10 +2,12 @@ package user_profile
 
 import (
 	"context"
+	"errors"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/NuEventTeam/events/pkg/types"
+	"github.com/jackc/pgx/v5"
 	"time"
 )
 
@@ -39,6 +41,9 @@ func GetOwnEvents(ctx context.Context, db database.DBTX, userId, lastEventId int
 
 	rows, err := db.Query(ctx, stmt, args...)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, err
+		}
 		return nil, err
 	}
 	defer rows.Close()

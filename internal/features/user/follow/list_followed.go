@@ -2,9 +2,11 @@ package user_follow
 
 import (
 	"context"
+	"errors"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 )
 
 func ListFollowed(db *database.Database) fiber.Handler {
@@ -27,6 +29,9 @@ func GetFollowed(ctx context.Context, db database.DBTX, userId int64) ([]Followe
 
 	rows, err := db.Query(ctx, query, userId)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, err
+		}
 		return nil, err
 	}
 	defer rows.Close()

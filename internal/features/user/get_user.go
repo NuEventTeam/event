@@ -134,7 +134,6 @@ func (u *User) GetOwnUserProfile() fiber.Handler {
 			profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, *user.ProfileImage)
 			user.ProfileImage = &profileImgUrl
 		}
-
 		preferences, err := database.GetUserPreferences(ctx.Context(), u.db.GetDb(), user.UserID)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)

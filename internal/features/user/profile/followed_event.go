@@ -2,11 +2,13 @@ package user_profile
 
 import (
 	"context"
+	"errors"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/NuEventTeam/events/pkg/types"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 	"log"
 	"time"
 )
@@ -71,6 +73,9 @@ func GetFollowedEvents(ctx context.Context, db database.DBTX, userId, lastEventI
 
 	stmt, args, err := query.ToSql()
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, err
+		}
 		return nil, err
 	}
 	log.Println(stmt)
