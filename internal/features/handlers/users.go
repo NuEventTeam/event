@@ -15,17 +15,17 @@ func (h *Handler) SetUpUserRoutes(router *fiber.App) {
 		h.UserSvc.CreateUserHandler(),
 	)
 
+	apiV1.Get("/check-username/:username",
+		MustAuth(h.JwtSecret),
+		h.UserSvc.GetByUsername(),
+	)
+
 	apiV1.Post("/create/mobile/user",
 		MustAuth(h.JwtSecret),
 		h.UserSvc.CreateMobileUserHandler(),
 	)
 
 	apiV1.Get("/user/:username", MustAuth(h.JwtSecret), h.UserSvc.GetByUsername())
-
-	apiV1.Get("/check-username/:username",
-		MustAuth(h.JwtSecret),
-		h.UserSvc.GetByUsername(),
-	)
 
 	apiV1.Post("users/friendship/check/:userId",
 		MustAuth(h.JwtSecret),
@@ -53,6 +53,11 @@ func (h *Handler) SetUpUserRoutes(router *fiber.App) {
 	apiV1.Post("/users/profile/events/followed",
 		MustAuth(h.JwtSecret),
 		user_profile.GetFollowedEventsHandler(h.DB),
+	)
+
+	apiV1.Get("/users/profile/",
+		MustAuth(h.JwtSecret),
+		h.UserSvc.GetOwnUserProfile(),
 	)
 
 	apiV1.Post("/users/profile/events/history",
