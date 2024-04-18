@@ -48,7 +48,7 @@ func GetChats(db *database.Database) fiber.Handler {
 
 		lastMessages, err := getLastMessages(ctx.Context(), db.GetDb(), userId)
 		if err != nil {
-			return pkg.Error(ctx, fiber.StatusInternalServerError, "oops error", err)
+			return pkg.Error(ctx, fiber.StatusInternalServerError, "oops errors", err)
 		}
 
 		chats := []Chat{}
