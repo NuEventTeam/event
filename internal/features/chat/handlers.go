@@ -21,8 +21,15 @@ func joinChatHandler(w http.ResponseWriter, r *http.Request) {
 	ServeWs(ChatManager, w, r.WithContext(ctx))
 }
 
+//
 //func GetChats(db *database.Database) fiber.Handler {
 //	return func(ctx *fiber.Ctx) error {
+//		userId := ctx.Locals("userId").(int64)
+//		lastId := ctx.Q
+//		followed, err := user_profile.GetFollowedEvents(ctx.Context(), db.GetDb(), userId)
+//		if err != nil {
+//			return pkg.Error(ctx, fiber.StatusInternalServerError, "oops error", err)
+//		}
 //
 //	}
 //}
