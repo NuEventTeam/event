@@ -83,7 +83,7 @@ func getLastMessages(ctx context.Context, db database.DBTX, userId int64) (map[i
        ranked_messages.messages, ranked_messages.created_at, username, profile_image
 FROM (
   SELECT id, event_id, user_id, messages, created_at
-    ROW_NUMBER() OVER (PARTITION BY chat_id ORDER BY created_at DESC) AS row_num
+    ROW_NUMBER() OVER (PARTITION BY id ORDER BY created_at DESC) AS row_num
   FROM chat_messages
 ) AS ranked_messages
 INNER JOIN users ON ranked_messages.user_id = users.id
