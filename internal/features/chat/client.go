@@ -108,6 +108,9 @@ var upgrader = websocket.Upgrader{
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
+	Error: func(w http.ResponseWriter, r *http.Request, status int, reason error) {
+		log.Println(reason, status)
+	},
 }
 
 func ServeWs(manager *Manager, w http.ResponseWriter, r *http.Request) {
