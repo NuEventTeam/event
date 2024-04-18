@@ -17,6 +17,5 @@ func RunChatServer(port int) error {
 		ReadTimeout:  60 * time.Second,
 	}
 
-	//return srv.ListenAndServeTLS("/etc/ssl/certs/apache-selfsigned.crt", "/etc/ssl/private/apache-selfsigned.key")
-	return srv.ListenAndServe()
+	return srv.ListenAndServeTLS("./certs/server.crt", "./certs/server.key")
 }
