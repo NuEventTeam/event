@@ -36,7 +36,7 @@ func GenerateTicket(db *database.Database, cache *keydb.Cache, secret string) fi
 
 		key := ulid.Make().String()
 
-		err = cache.Set(ctx.Context(), key, token, time.Minute*3)
+		err = cache.Set(ctx.Context(), key, token, time.Hour)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "oops something went wrong", err)
 		}

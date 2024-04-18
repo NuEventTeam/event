@@ -20,3 +20,13 @@ func joinChatHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(r.Context(), "eventId", eventID)
 	ServeWs(ChatManager, w, r.WithContext(ctx))
 }
+
+//func GetChats(db *database.Database) fiber.Handler {
+//	return func(ctx *fiber.Ctx) error {
+//
+//	}
+//}
+//
+//func getChats(ctx context.Context, db database.DBTX, userId int64) {
+//
+//}
