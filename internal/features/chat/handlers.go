@@ -79,14 +79,16 @@ type Messages struct {
 }
 
 func getLastMessages(ctx context.Context, db database.DBTX, userId int64) (map[int64]Messages, error) {
-	query := `SELECT ranked_messages.id,ranked_messages.event_id, ranked_messages.user_id, ranked_messages.messages, ranked_messages.created_at,username,profile_image
-				FROM (
-    				SELECT id, event_id, user_id, messages,created_at
-           		ROW_NUMBER() OVER (PARTITION BY chat_id ORDER BY timestamp DESC) AS row_num
-    			FROM chat_messages
-				) AS ranked_messages
-inner join users on  users.id = chat_messages.userId;
-				WHERE row_num = 1 and user_id = $1;`
+	query := `SELECT ranked_messages.id, ranked_messages.event_id, ranked_messages.user_id,
+       ranked_messages.messages, ranked_messages.created_at, username, profile_image
+FROM (
+  SELECT id, event_id, user_id, messages, created_at
+    ROW_NUMBER() OVER (PARTITION BY chat_id ORDER BY created_at DESC) AS row_num
+  FROM chat_messages
+) AS ranked_messages
+INNER JOIN users ON ranked_messages.user_id = users.id
+WHERE row_num = 1 AND ranked_messages.user_id = $1;
+`
 
 	rows, err := db.Query(ctx, query, userId)
 	if err != nil {
