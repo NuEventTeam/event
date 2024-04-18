@@ -2,14 +2,15 @@ package chat
 
 import (
 	"fmt"
+	"github.com/NuEventTeam/events/internal/storage/database"
 	"log"
 	"net/http"
 	"time"
 )
 
-func RunChatServer(port int) error {
+func RunChatServer(port int, db *database.Database) error {
 	log.Println("staring chat", port)
-
+	DB = db
 	ChatManager = NewManager()
 	go ChatManager.Run()
 	srv := &http.Server{

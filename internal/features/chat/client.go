@@ -3,11 +3,16 @@ package chat
 import (
 	"context"
 	"fmt"
+	"github.com/NuEventTeam/events/internal/storage/database"
+	"github.com/NuEventTeam/events/pkg"
+	"github.com/bytedance/sonic"
 	"github.com/gorilla/websocket"
 	"log"
 	"net/http"
 	"time"
 )
+
+var DB *database.Database
 
 const (
 	// Time allowed to write a message to the peer.
@@ -93,13 +98,59 @@ func (c *Client) readMessage(ctx context.Context) {
 			break
 		}
 
-		payload = []byte(fmt.Sprintf("from: %d, msg:%s, eventId: %v", c.ClientId, string(payload), ctx.Value("eventId")))
+		msg, err := saveMessage(DB.GetDb(), c.EventId, c.ClientId, string(payload))
+		if err != nil {
+			log.Println(err)
+			return
+		}
+
+		js, err := sonic.ConfigFastest.Marshal(msg)
+
 		c.Manager.messageChan <- Message{
 			EventId: ctx.Value("eventId").(int64),
-			Payload: payload,
-			UserIds: []int64{c.ClientId},
+			Payload: js,
+			From:    c.ClientId,
 		}
 	}
+}
+
+func saveMessage(db database.DBTX, eventId, userId int64, message string) (Messages, error) {
+
+	query := ` insert into chat_messages(event_id,user_id,message) values($1,$2,$3) returning id,created_at`
+	var (
+		messageId int64
+		createdAt time.Time
+	)
+	err := db.QueryRow(context.Background(), query, eventId, userId, message).Scan(&messageId, &createdAt)
+	if err != nil {
+		return Messages{}, err
+	}
+
+	query = `select username,profile_image from users where id = $1`
+
+	var (
+		username     string
+		profileImage *string
+	)
+
+	err = db.QueryRow(context.Background(), query, userId).Scan(&username, &profileImage)
+	if err != nil {
+		return Messages{}, err
+	}
+
+	if profileImage != nil {
+		profileImgUrl := fmt.Sprint(pkg.CDNBaseUrl, *profileImage)
+		profileImage = &profileImgUrl
+	}
+	return Messages{
+		ID:           messageId,
+		CreatedAt:    createdAt,
+		UserId:       userId,
+		Username:     username,
+		ProfileImage: profileImage,
+		Message:      message,
+		EventId:      eventId,
+	}, nil
 }
 
 var upgrader = websocket.Upgrader{

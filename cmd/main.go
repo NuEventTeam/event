@@ -41,7 +41,7 @@ func main() {
 
 	go application.MustRun()
 
-	go log.Println(chat.RunChatServer(cfg.Ws.Port))
+	go log.Println(chat.RunChatServer(cfg.Ws.Port, db))
 
 	stop := make(chan os.Signal, 1)
 

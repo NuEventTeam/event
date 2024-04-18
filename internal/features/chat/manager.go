@@ -20,6 +20,7 @@ type Message struct {
 	EventId int64
 	Payload json.RawMessage
 	UserIds []int64
+	From    int64
 }
 
 func NewManager() *Manager {
@@ -58,6 +59,9 @@ func (m *Manager) Run() {
 		select {
 		case message := <-m.messageChan:
 			for _, client := range m.EventList[message.EventId] {
+				if client.ClientId == message.From {
+					continue
+				}
 				client := client
 				go func() {
 					client.SendMsgChan <- message

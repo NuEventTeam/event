@@ -76,6 +76,7 @@ type Location struct {
 type Event struct {
 	Id            int64           `json:"eventId"`
 	Title         string          `json:"title"`
+	Description   string          `json:"description"`
 	Location      Location        `json:"location"`
 	Images        []string        `json:"images"`
 	Categories    []Categories    `json:"categories"`
@@ -89,7 +90,7 @@ type Event struct {
 }
 
 func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (map[int64]Event, []int64, error) {
-	query := qb.Select("events.id,title,age_min, like_count, events.follower_count, username,user_id,profile_image," +
+	query := qb.Select("events.id,title,description,age_min, like_count, events.follower_count, username,user_id,profile_image," +
 		"address, longitude, latitude, seats, attendees_count, starts_at, ends_at").
 		From("events").
 		InnerJoin("event_locations on events.id = event_locations.event_id").
@@ -142,7 +143,7 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 			endsAt   time.Time
 		)
 
-		err := rows.Scan(&e.Id, &e.Title, &e.AgeMin, &e.LikeCount, &e.FollowerCount, &e.Author.Username, &e.Author.ID, &e.Author.ProfileImage,
+		err := rows.Scan(&e.Id, &e.Title, &e.Description, &e.AgeMin, &e.LikeCount, &e.FollowerCount, &e.Author.Username, &e.Author.ID, &e.Author.ProfileImage,
 			&e.Location.Address, &e.Location.Log, &e.Location.Lat, &e.Location.Seats, &e.Location.AttendeesCount, &startsAt, &endsAt,
 			&e.Distance)
 		if err != nil {
