@@ -122,7 +122,6 @@ func ServeWs(manager *Manager, w http.ResponseWriter, r *http.Request) {
 	}
 	userId := r.Context().Value("userId").(int64)
 	eventId := r.Context().Value("eventId").(int64)
-
 	client := NewClient(userId, eventId, manager, conn)
 
 	client.Manager.Register(client)

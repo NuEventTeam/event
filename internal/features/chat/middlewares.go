@@ -8,7 +8,6 @@ import (
 )
 
 func Authorize(next http.HandlerFunc) http.HandlerFunc {
-	log.Println("here chat request")
 	return func(w http.ResponseWriter, r *http.Request) {
 		token := r.URL.Query().Get("token")
 		log.Println("TRYING TO CHATT")
