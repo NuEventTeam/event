@@ -103,8 +103,8 @@ func (c *Client) readMessage(ctx context.Context) {
 }
 
 var upgrader = websocket.Upgrader{
-	ReadBufferSize:  1024,
-	WriteBufferSize: 1024,
+	ReadBufferSize:  10240,
+	WriteBufferSize: 10240,
 	CheckOrigin: func(r *http.Request) bool {
 		return true
 	},
