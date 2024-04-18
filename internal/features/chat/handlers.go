@@ -22,7 +22,7 @@ func joinChatHandler(w http.ResponseWriter, r *http.Request) {
 	ctx := context.WithValue(r.Context(), "eventId", eventID)
 	ctx = context.WithValue(ctx, "userId", rand.Int63())
 
-	ServeWs(ChatManager, w, r)
+	ServeWs(ChatManager, w, r.WithContext(ctx))
 }
 
 //
