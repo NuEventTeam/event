@@ -29,6 +29,7 @@ func New(
 
 	httpHandler.SetUpAuthRoutes(httpServer)
 
+	httpHandler.SetUpChatRoutes(httpServer)
 	return &App{
 		httpServer: httpServer,
 		port:       port,
