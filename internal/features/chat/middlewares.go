@@ -20,7 +20,7 @@ func Authorize(next http.HandlerFunc) http.HandlerFunc {
 
 		ctx := context.WithValue(r.Context(), "userId", userId)
 		ctx = context.WithValue(ctx, "userAgent", userAgent)
-
+		log.Println("TRYING TO CHATT")
 		next.ServeHTTP(w, r.WithContext(ctx))
 
 	})
