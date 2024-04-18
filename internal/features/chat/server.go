@@ -8,11 +8,10 @@ import (
 )
 
 func RunChatServer(port int) error {
-	log.Println("staring chat")
+	log.Println("staring chat", port)
 
 	ChatManager = NewManager()
 	go ChatManager.Run()
-
 	srv := &http.Server{
 		Handler:      getRouter(),
 		Addr:         fmt.Sprintf(":%d", port),
