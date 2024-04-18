@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/oklog/ulid/v2"
+	"log"
 	"time"
 )
 
@@ -56,6 +57,7 @@ func checkIfFollows(ctx context.Context, db database.DBTX, eventId, userId int64
 	if err != nil {
 		return false, err
 	}
+	log.Println(count)
 	return count > 0, nil
 }
 

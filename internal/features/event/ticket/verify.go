@@ -8,17 +8,18 @@ import (
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v5"
+	"log"
 )
 
 func VerifyTicket(db *database.Database, cache *keydb.Cache, secret string) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		ticketId := ctx.Query("ticket")
-
+		log.Println(ticketId)
 		ticket, err := cache.Get(ctx.Context(), ticketId)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
-
+		log.Println(ticket)
 		followerId, eventId, err := ParseTicket(ticket.(string), secret)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
