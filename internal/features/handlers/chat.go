@@ -6,9 +6,10 @@ import (
 )
 
 func (h *Handler) SetUpChatRoutes(router *fiber.App) {
+	apiV1 := router.Group("/api/v1")
 
-	router.Get("/event/chat/preview/:eventId", MustAuth(h.JwtSecret), chat.GetChats(h.DB))
+	apiV1.Get("/event/chat/preview/:eventId", MustAuth(h.JwtSecret), chat.GetChats(h.DB))
 
-	router.Get("/event/chat/messages/:eventId", MustAuth(h.JwtSecret), chat.GetChatMessages(h.DB))
+	apiV1.Get("/event/chat/messages/:eventId", MustAuth(h.JwtSecret), chat.GetChatMessages(h.DB))
 
 }
