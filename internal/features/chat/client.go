@@ -116,7 +116,7 @@ func (c *Client) readMessage(ctx context.Context) {
 
 func saveMessage(db database.DBTX, eventId, userId int64, message string) (Messages, error) {
 
-	query := ` insert into chat_messages(event_id,user_id,message) values($1,$2,$3) returning id,created_at`
+	query := ` insert into chat_messages(event_id,user_id,messages) values($1,$2,$3) returning id,created_at`
 	var (
 		messageId int64
 		createdAt time.Time

@@ -81,7 +81,7 @@ type Messages struct {
 func getLastMessages(ctx context.Context, db database.DBTX, userId int64) (map[int64]Messages, error) {
 	query := `SELECT ranked_messages.id,ranked_messages.event_id, ranked_messages.user_id, ranked_messages.messages, ranked_messages.created_at,username,profile_image
 				FROM (
-    				SELECT id, event_id, user_id, message,created_at
+    				SELECT id, event_id, user_id, messages,created_at
            		ROW_NUMBER() OVER (PARTITION BY chat_id ORDER BY timestamp DESC) AS row_num
     			FROM chat_messages
 				) AS ranked_messages
@@ -135,7 +135,7 @@ func GetChatMessages(db *database.Database) fiber.Handler {
 }
 
 func FetchChatMessage(ctx context.Context, db database.DBTX, eventId int64, userId, lastId int64) ([]Messages, error) {
-	query := `select chat_messages.id, user_id,username,profile_image,chat_messages.created_at, message
+	query := `select chat_messages.id, user_id,username,profile_image,chat_messages.created_at, messages
 				from chat_messages inner join users on users.id = chat_messages.user_id 
 				where chat_messages.event_id = $1 and chat_messages.id > $2
 				order by id desc
