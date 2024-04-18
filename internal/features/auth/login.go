@@ -122,7 +122,7 @@ func (a *Auth) GetJWT(userID int64, userAgent *string) (string, error) {
 		key = []byte(a.jwt.Secret)
 	)
 	log.Println(userID)
-	expireTime := time.Now().Add(a.jwt.Expiry)
+	expireTime := time.Now().Add(time.Hour * 24)
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
