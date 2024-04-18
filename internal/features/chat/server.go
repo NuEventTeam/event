@@ -13,8 +13,8 @@ func RunChatServer(port int) error {
 	srv := &http.Server{
 		Handler:      getRouter(),
 		Addr:         fmt.Sprintf(":%d", port),
-		WriteTimeout: 10 * time.Second,
-		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 60 * time.Second,
+		ReadTimeout:  60 * time.Second,
 	}
 	return srv.ListenAndServe()
 	//return srv.ListenAndServeTLS("./certs/server.crt", "./certs/server.key")
