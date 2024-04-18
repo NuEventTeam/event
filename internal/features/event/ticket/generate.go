@@ -36,7 +36,7 @@ func GenerateTicket(db *database.Database, cache *keydb.Cache, secret string) fi
 
 		key := ulid.Make().String()
 
-		err = cache.Set(ctx.Context(), key, token, time.Hour)
+		err = cache.Set(ctx.Context(), key, token, time.Hour*24)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "oops something went wrong", err)
 		}
@@ -63,7 +63,7 @@ func generateTicketToken(secret string, eventId, userId int64) (string, error) {
 	var (
 		key = []byte(secret)
 	)
-	expireTime := time.Now().Add(time.Hour)
+	expireTime := time.Now().Add(time.Hour * 24)
 	token := jwt.New(jwt.SigningMethodHS256)
 
 	claims := token.Claims.(jwt.MapClaims)
