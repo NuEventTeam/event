@@ -2,11 +2,14 @@ package chat
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"time"
 )
 
 func RunChatServer(port int) error {
+	log.Println("staring chat")
+
 	ChatManager = NewManager()
 	go ChatManager.Run()
 
