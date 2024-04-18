@@ -4,12 +4,14 @@ import (
 	"context"
 	"github.com/gorilla/mux"
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
 )
 
 func joinChatHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("here")
+
 	eventID, err := strconv.ParseInt(mux.Vars(r)["eventId"], 10, 64)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -18,6 +20,8 @@ func joinChatHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	ctx := context.WithValue(r.Context(), "eventId", eventID)
+	ctx = context.WithValue(ctx, "userId", rand.Int63())
+
 	ServeWs(ChatManager, w, r.WithContext(ctx))
 }
 
