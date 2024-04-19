@@ -34,10 +34,10 @@ func joinChatHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 type Chat struct {
-	EventID     int64    `json:"eventId"`
-	Title       string   `json:"title"`
-	Images      []string `json:"images"`
-	LastMessage Messages `json:"lastMessage"`
+	EventID     int64     `json:"eventId"`
+	Title       string    `json:"title"`
+	Images      []string  `json:"images"`
+	LastMessage *Messages `json:"lastMessage"`
 }
 
 func GetChats(db *database.Database) fiber.Handler {
@@ -63,7 +63,7 @@ func GetChats(db *database.Database) fiber.Handler {
 				EventID:     val.ID,
 				Images:      val.Images,
 				Title:       val.Title,
-				LastMessage: lastMessage,
+				LastMessage: &lastMessage,
 			})
 		}
 
@@ -161,7 +161,7 @@ INNER JOIN users on t1.user_id = users.id;
 
 func GetChatMessages(db *database.Database) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
-		userId := ctx.Locals("userid").(int64)
+		userId := ctx.Locals("userId").(int64)
 		eventId, err := ctx.ParamsInt("eventId")
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
