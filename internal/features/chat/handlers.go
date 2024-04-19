@@ -3,6 +3,7 @@ package chat
 import (
 	"context"
 	"fmt"
+	"github.com/Masterminds/squirrel"
 	user_profile "github.com/NuEventTeam/events/internal/features/user/profile"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
@@ -13,6 +14,8 @@ import (
 	"strconv"
 	"time"
 )
+
+var qb = squirrel.StatementBuilder.PlaceholderFormat(squirrel.Dollar)
 
 func joinChatHandler(w http.ResponseWriter, r *http.Request) {
 	log.Println("here")
@@ -79,26 +82,40 @@ type Messages struct {
 }
 
 func getLastMessages(ctx context.Context, db database.DBTX, userId int64) (map[int64]Messages, error) {
-	query := `SELECT ranked_messages.id, ranked_messages.event_id, ranked_messages.user_id,
-       ranked_messages.messages, ranked_messages.created_at, username, profile_image
-FROM (
-  SELECT id, event_id, user_id, messages, created_at
-    ROW_NUMBER() OVER (PARTITION BY id ORDER BY created_at DESC) AS row_num
-  FROM chat_messages
-) AS ranked_messages
-INNER JOIN users ON ranked_messages.user_id = users.id
-WHERE row_num = 1 AND ranked_messages.user_id = $1;
-`
+	query := `select  event_id from event_followers inner join chat_messages on chat_messages.event_id = event_followers.event_id
+group by  event_id where user_id = $1`
+
+	eventIds := []int64{}
 
 	rows, err := db.Query(ctx, query, userId)
 	if err != nil {
 		return nil, err
 	}
+	for rows.Next() {
+		var id int64
+		err := rows.Scan(&id)
+		if err != nil {
+			return nil, err
+		}
+		eventIds = append(eventIds, id)
+	}
+	rows.Close()
 
-	defer rows.Close()
+	q := qb.Select("id, event_id,user_id, messages, max(chat_messages.created_at), username, profile_images").
+		From("chat_messages").InnerJoin("users on users.id = chat_messages.user_id").
+		Where(squirrel.Eq{"event_id": eventIds}).OrderBy("created_at desc")
+
+	stmt, args, err := q.ToSql()
+	if err != nil {
+		return nil, err
+	}
 
 	messages := map[int64]Messages{}
-
+	rows, err = db.Query(ctx, stmt, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
 	for rows.Next() {
 		var m Messages
 		err := rows.Scan(&m.ID, &m.EventId, &m.UserId, &m.Message, &m.CreatedAt, &m.Username, &m.ProfileImage)
