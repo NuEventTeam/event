@@ -25,7 +25,7 @@ func (e Event) AddImage() fiber.Handler {
 		}
 
 		images := make([]assets.Image, len(form.File["images"]))
-		wg := sync.WaitGroup{}
+		wg := &sync.WaitGroup{}
 
 		for i, f := range form.File["images"] {
 			wg.Add(1)
