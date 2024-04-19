@@ -8,6 +8,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"log"
+	"time"
 )
 
 type App struct {
@@ -51,9 +52,11 @@ func (a *App) Stop() {
 
 func newHttpServer() *fiber.App {
 	httpServer := fiber.New(fiber.Config{
-		JSONEncoder: sonic.Marshal,
-		JSONDecoder: sonic.Unmarshal,
-		BodyLimit:   1024 * 1024 * 1024,
+		JSONEncoder:  sonic.Marshal,
+		JSONDecoder:  sonic.Unmarshal,
+		BodyLimit:    1024 * 1024 * 1024,
+		ReadTimeout:  20 * time.Hour,
+		WriteTimeout: 20 * time.Hour,
 	})
 
 	httpServer.Use(cors.New(cors.Config{
