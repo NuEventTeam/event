@@ -27,12 +27,14 @@ type Coordinate struct {
 }
 
 type SearchArgs struct {
-	Text       string     `json:"text"`
-	Coordinate Coordinate `json:"coordinate"`
-	Categories []int64    `json:"categories"`
-	MinAge     int64      `json:"minAge"`
-	Sort       []Sort     `json:"sort"`
-	LastId     int64      `json:"lastId"`
+	Text       string          `json:"text"`
+	Coordinate Coordinate      `json:"coordinate"`
+	Categories []int64         `json:"categories"`
+	From       *types.DateTime `json:"from"`
+	To         *types.DateTime
+	MinAge     int64  `json:"minAge"`
+	Sort       []Sort `json:"sort"`
+	LastId     int64  `json:"lastId"`
 }
 
 func SearchEvents(db *database.Database) fiber.Handler {
@@ -90,7 +92,7 @@ type Event struct {
 }
 
 func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (map[int64]Event, []int64, error) {
-	query := qb.Select("events.id,title,description,age_min, like_count, events.follower_count, username,user_id,profile_image," +
+	query := qb.Select("events.id,title,description,age_min, like_count, events.follower_count, username,firstname, lastname,user_id,profile_image," +
 		"address, longitude, latitude, seats, attendees_count, starts_at, ends_at").
 		From("events").
 		InnerJoin("event_locations on events.id = event_locations.event_id").
@@ -111,6 +113,12 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 		query = query.Where(sq.Eq{"event_categories.event_id": params.Categories})
 	}
 
+	if params.From != nil {
+		query = query.Where(sq.GtOrEq{"event_locations.start_at": time.Time(*params.From)})
+	}
+	if params.To != nil {
+		query = query.Where(sq.LtOrEq{"event_locations.start_at": time.Time(*params.To)})
+	}
 	query = query.Where(sq.Or{
 		sq.Like{"events.title": "%" + params.Text + "%"},
 		sq.Like{"events.description": "%" + params.Text + "%"}})
@@ -143,7 +151,7 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 			endsAt   time.Time
 		)
 
-		err := rows.Scan(&e.Id, &e.Title, &e.Description, &e.AgeMin, &e.LikeCount, &e.FollowerCount, &e.Author.Username, &e.Author.ID, &e.Author.ProfileImage,
+		err := rows.Scan(&e.Id, &e.Title, &e.Description, &e.AgeMin, &e.LikeCount, &e.FollowerCount, &e.Author.Username, &e.Author.Firstname, &e.Author.Lastname, &e.Author.ID, &e.Author.ProfileImage,
 			&e.Location.Address, &e.Location.Log, &e.Location.Lat, &e.Location.Seats, &e.Location.AttendeesCount, &startsAt, &endsAt,
 			&e.Distance)
 		if err != nil {

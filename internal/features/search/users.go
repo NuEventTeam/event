@@ -43,6 +43,8 @@ type Categories struct {
 type User struct {
 	ID           int64        `json:"userId"`
 	Username     string       `json:"username"`
+	Firstname    string       `json:"firstname"`
+	Lastname     string       `json:"lastname"`
 	ProfileImage *string      `json:"profileImage"`
 	Categories   []Categories `json:"categories,omitempty"`
 }
