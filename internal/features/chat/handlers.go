@@ -140,7 +140,7 @@ INNER JOIN users on t1.user_id = users.id;
 	defer rows.Close()
 	for rows.Next() {
 		var m Messages
-		err := rows.Scan(&m.ID, &m.EventId, &m.UserId, &m.Message, &m.CreatedAt, &m.Username, &m.ProfileImage)
+		err := rows.Scan(&m.ID, &m.EventId, &m.UserId, &m.CreatedAt, &m.Message, &m.Username, &m.ProfileImage)
 		if err != nil {
 			return nil, err
 		}
