@@ -209,5 +209,5 @@ func FetchChatMessage(ctx context.Context, db database.DBTX, eventId int64, user
 		messages = append(messages, m)
 	}
 
-	return nil, err
+	return messages, nil
 }
