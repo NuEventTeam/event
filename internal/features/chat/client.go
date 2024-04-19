@@ -52,6 +52,7 @@ func NewClient(userId, eventId int64, m *Manager, conn *websocket.Conn) *Client 
 func (c *Client) writeMessage(ctx context.Context) {
 	ticker := time.NewTicker(pingPeriod)
 	defer func() {
+		log.Println("stopping chat")
 		ticker.Stop()
 		c.Conn.Close()
 	}()
@@ -83,6 +84,8 @@ func (c *Client) readMessage(ctx context.Context) {
 	defer func() {
 		c.Manager.Unregister(c)
 		c.Conn.Close()
+		log.Println("stopping chat")
+
 	}()
 
 	c.Conn.SetReadLimit(maxMessageSize)
