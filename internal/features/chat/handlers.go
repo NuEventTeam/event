@@ -103,15 +103,34 @@ select  event_followers.event_id from event_followers
 		eventIds = append(eventIds, id)
 	}
 	rows.Close()
+	q := qb.Select(`t1.id, t1.user_id,t1.event_id,t1.created_at,t1.messages, users.username, users.profile_image`).
+		From("chat_messages t1").
+		Join(`( SELECT LEAST(user_id, event_id) user1,
+		GREATEST(user_id, event_id) user2,
+		MAX(t2.created_at) created_at
+	FROM chat_messages t2
+	GROUP BY user1, user2 ) t3  ON t1.user_id IN (t3.user1, t3.user2)
+	AND t1.event_id IN (t3.user1, t3.user2)
+	AND t1.created_at = t3.created_at`).
+		InnerJoin("users on t1.user_id = users.id").
+		Where(squirrel.Eq{"t1.user_id": userId}).OrderBy("t1.created_at desc")
 
-	q := qb.Select("chat_messages.id, chat_messages.event_id,chat_messages.user_id, chat_messages.messages, max(chat_messages.created_at), username, profile_image").
-		From("chat_messages").InnerJoin("users on users.id = chat_messages.user_id").
-		Where(squirrel.Eq{"chat_messages.event_id": eventIds}).OrderBy("chat_messages.created_at desc")
-
+	query = `SELECT t1.id, t1.user_id,t1.event_id,t1.created_at,t1.messages, users.username, users.profile_image
+FROM chat_messages t1
+         JOIN ( SELECT LEAST(user_id, event_id) user1,
+                       GREATEST(user_id, event_id) user2,
+                       MAX(t2.created_at) created_at
+                FROM chat_messages t2
+                GROUP BY user1, user2 ) t3  ON t1.user_id IN (t3.user1, t3.user2)
+    AND t1.event_id IN (t3.user1, t3.user2)
+    AND t1.created_at = t3.created_at
+INNER JOIN users on t1.user_id = users.id;
+`
 	stmt, args, err := q.ToSql()
 	if err != nil {
 		return nil, err
 	}
+	log.Println(stmt)
 
 	messages := map[int64]Messages{}
 	rows, err = db.Query(ctx, stmt, args...)
