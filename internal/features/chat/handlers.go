@@ -58,7 +58,7 @@ func GetChats(db *database.Database) fiber.Handler {
 		log.Println(followed)
 		log.Println(lastMessages)
 		for key, val := range followed {
-			lastMessage := lastMessages[key]
+			lastMessage := lastMessages[val.ID]
 			chats = append(chats, Chat{
 				EventID:     key,
 				Images:      val.Images,
