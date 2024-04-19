@@ -116,7 +116,7 @@ select  event_followers.event_id from event_followers
 	//	InnerJoin("users on t1.user_id = users.id").
 	//	Where(squirrel.Eq{"t1.user_id": userId}).OrderBy("t1.created_at desc")
 
-	q := qb.Select(`chat_messages.id, user_id,username,profile_image,chat_messages.created_at, messages`).
+	q := qb.Select(`chat_messages.id, chat_messages.event_id,user_id,username,profile_image,chat_messages.created_at, messages`).
 		From("chat_messages").InnerJoin("users on users.id = chat_messages.user_id").
 		Where(squirrel.Eq{"chat_messages.event_id": eventIds}).OrderBy("chat_messages desc")
 	stmt, args, err := q.ToSql()
@@ -133,7 +133,7 @@ select  event_followers.event_id from event_followers
 	defer rows.Close()
 	for rows.Next() {
 		var m Messages
-		err := rows.Scan(&m.ID, &m.UserId, &m.EventId, &m.CreatedAt, &m.Message, &m.Username, &m.ProfileImage)
+		err := rows.Scan(&m.ID, &m.EventId, &m.UserId, &m.Username, &m.ProfileImage, &m.CreatedAt, &m.Message)
 		if err != nil {
 			return nil, err
 		}
@@ -172,7 +172,7 @@ func GetChatMessages(db *database.Database) fiber.Handler {
 }
 
 func FetchChatMessage(ctx context.Context, db database.DBTX, eventId int64, userId, lastId int64) ([]Messages, error) {
-	query := `select chat_messages.id,chat_messages.event_id, user_id,username,profile_image,chat_messages.created_at, messages
+	query := `select chat_messages.id, user_id,username,profile_image,chat_messages.created_at, messages
 				from chat_messages inner join users on users.id = chat_messages.user_id
 				where chat_messages.event_id = $1 and chat_messages.id > $2
 				order by id desc
@@ -188,7 +188,7 @@ func FetchChatMessage(ctx context.Context, db database.DBTX, eventId int64, user
 	defer rows.Close()
 	for rows.Next() {
 		var m Messages
-		err := rows.Scan(&m.ID, &m.EventId, &m.UserId, &m.Username, &m.ProfileImage, &m.CreatedAt, &m.Message)
+		err := rows.Scan(&m.ID, &m.UserId, &m.Username, &m.ProfileImage, &m.CreatedAt, &m.Message)
 		if err != nil {
 			return nil, err
 		}
