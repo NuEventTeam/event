@@ -17,6 +17,7 @@ import (
 )
 
 type CreateEventRequest struct {
+	ID          int64          `json:"id"`
 	Title       string         `json:"title"`
 	Description string         `json:"description"`
 	Price       *float32       `json:"price"`
@@ -24,6 +25,7 @@ type CreateEventRequest struct {
 	MaxAge      *int64         `json:"max_age"`
 	MinAge      *int64         `json:"min_age"`
 	Address     string         `json:"address"`
+	LocId       int64          `json:"locationId"`
 	Longitude   float64        `json:"lg"`
 	Latitude    float64        `json:"lt"`
 	Date        types.Date     `json:"date"`
@@ -105,6 +107,7 @@ func (e *Event) CreateEventHandler() fiber.Handler {
 			Images:      images,
 			CategoryIds: request.Categories,
 			Locations: []models.Location{{
+				ID:        request.LocId,
 				Address:   &request.Address,
 				Longitude: &request.Longitude,
 				Latitude:  &request.Latitude,
@@ -123,6 +126,12 @@ func (e *Event) CreateEventHandler() fiber.Handler {
 		if request.Price != nil {
 			event.LocalPrice = new(int64)
 			*event.LocalPrice = int64(*request.Price * 100)
+		}
+		if request.ID != 0 {
+			err := e.UpdateEvent(ctx.Context(), event)
+			if err != nil {
+
+			}
 		}
 		eventID, err := e.createEvent(ctx.Context(), event)
 		if err != nil {
