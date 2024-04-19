@@ -252,7 +252,7 @@ func (e *Event) getEventAllEvents(ctx context.Context, db database.DBTX, lastId 
 			return nil, err
 		}
 		if m.User.ProfileImage != nil {
-			*m.User.ProfileImage = pkg.CDNBaseUrl + "/get/" + *m.User.ProfileImage
+			*m.User.ProfileImage = pkg.CDNBaseUrl + "get/" + *m.User.ProfileImage
 		}
 
 		query := qb.Select("permission_id").
