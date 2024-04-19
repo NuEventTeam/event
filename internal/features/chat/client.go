@@ -98,6 +98,7 @@ func (c *Client) readMessage(ctx context.Context) {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Printf("error: %v", err)
 			}
+			log.Println(err)
 			break
 		}
 
