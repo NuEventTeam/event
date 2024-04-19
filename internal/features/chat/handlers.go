@@ -85,7 +85,7 @@ func getLastMessages(ctx context.Context, db database.DBTX, userId int64) (map[i
 	query := `
 select  event_followers.event_id from event_followers
 		inner join chat_messages on chat_messages.event_id = event_followers.event_id
-		where event_followers.user_id = 2 group by event_followers.event_id
+		where event_followers.user_id = $1 group by event_followers.event_id
 `
 
 	eventIds := []int64{}
