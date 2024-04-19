@@ -171,7 +171,7 @@ func (u *User) GetOwnUserProfile() fiber.Handler {
 			pastEvents = append(pastEvents, val)
 		}
 
-		ownEventsMap, err := user_profile.GetOwnEvents(ctx.Context(), u.db.GetDb(), user.UserID, 9)
+		ownEventsMap, err := user_profile.GetOwnEvents(ctx.Context(), u.db.GetDb(), user.UserID, 0)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 		}
