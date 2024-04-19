@@ -30,7 +30,7 @@ func (e Event) AddImage() fiber.Handler {
 		for i, f := range form.File["images"] {
 			wg.Add(1)
 			f := f
-			go func(index int) {
+			go func(index int, wg *sync.WaitGroup) {
 				defer wg.Done()
 				file, err := f.Open()
 				if err != nil {
@@ -47,7 +47,7 @@ func (e Event) AddImage() fiber.Handler {
 				} else {
 					images[index] = img
 				}
-			}(i)
+			}(i, wg)
 		}
 
 		wg.Wait()
