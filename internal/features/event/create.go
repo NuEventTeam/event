@@ -69,7 +69,7 @@ func (e *Event) CreateEventHandler() fiber.Handler {
 		}
 
 		images := make([]assets.Image, len(form.File["images"]))
-		wg := &sync.WaitGroup{}
+		wg := sync.WaitGroup{}
 
 		for i, f := range form.File["images"] {
 			wg.Add(1)
@@ -91,7 +91,7 @@ func (e *Event) CreateEventHandler() fiber.Handler {
 				} else {
 					images[index] = img
 				}
-			}(i, wg)
+			}(i, &wg)
 		}
 
 		wg.Wait()
