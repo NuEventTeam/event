@@ -55,6 +55,7 @@ func GetChats(db *database.Database) fiber.Handler {
 		}
 
 		chats := []Chat{}
+		log.Println(followed)
 		log.Println(lastMessages)
 		for key, val := range followed {
 			lastMessage := lastMessages[key]
