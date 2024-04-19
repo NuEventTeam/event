@@ -3,6 +3,7 @@ package assets
 import (
 	"bufio"
 	"context"
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -10,6 +11,7 @@ import (
 
 func (s *Assets) Upload(ctx context.Context, images ...Image) {
 	log.Println(images)
+
 	for _, img := range images {
 		img := img
 		go func() {
@@ -36,7 +38,6 @@ func (s *Assets) Upload(ctx context.Context, images ...Image) {
 				log.Println(err)
 				return
 			}
-			//io.W
 			writer := bufio.NewWriter(file)
 			scanner := bufio.NewScanner(img.file)
 			for scanner.Scan() {
@@ -47,6 +48,7 @@ func (s *Assets) Upload(ctx context.Context, images ...Image) {
 					log.Println(err)
 					return
 				}
+				fmt.Println(len(text))
 
 			}
 

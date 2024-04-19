@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"github.com/NuEventTeam/events/internal/features/handlers"
-	"github.com/NuEventTeam/events/internal/features/notification"
 	"github.com/bytedance/sonic"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -33,7 +32,7 @@ func New(
 
 	httpHandler.SetUpChatRoutes(httpServer)
 
-	notification.SetUpNotification(httpServer)
+	//notification.SetUpNotification(httpServer)
 
 	return &App{
 		httpServer: httpServer,
