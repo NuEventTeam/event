@@ -43,7 +43,7 @@ type Chat struct {
 func GetChats(db *database.Database) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		userId := ctx.Locals("userId").(int64)
-		lastId := ctx.QueryInt("lastId")
+		lastId := ctx.QueryInt("lastId", 0)
 		followed, err := user_profile.GetFollowedEvents(ctx.Context(), db.GetDb(), userId, int64(lastId))
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, "oops error", err)
@@ -58,9 +58,9 @@ func GetChats(db *database.Database) fiber.Handler {
 		log.Println(followed)
 		log.Println(lastMessages)
 		for key, val := range followed {
-			lastMessage := lastMessages[val.ID]
+			lastMessage := lastMessages[key]
 			chats = append(chats, Chat{
-				EventID:     key,
+				EventID:     val.ID,
 				Images:      val.Images,
 				Title:       val.Title,
 				LastMessage: lastMessage,
@@ -141,7 +141,7 @@ INNER JOIN users on t1.user_id = users.id;
 	defer rows.Close()
 	for rows.Next() {
 		var m Messages
-		err := rows.Scan(&m.ID, &m.EventId, &m.UserId, &m.CreatedAt, &m.Message, &m.Username, &m.ProfileImage)
+		err := rows.Scan(&m.ID, &m.UserId, &m.EventId, &m.CreatedAt, &m.Message, &m.Username, &m.ProfileImage)
 		if err != nil {
 			return nil, err
 		}
@@ -163,6 +163,9 @@ func GetChatMessages(db *database.Database) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		userId := ctx.Locals("userid").(int64)
 		eventId, err := ctx.ParamsInt("eventId")
+		if err != nil {
+			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
+		}
 		lastId := ctx.QueryInt("lastId")
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
