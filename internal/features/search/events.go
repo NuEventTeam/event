@@ -92,7 +92,7 @@ type Event struct {
 }
 
 func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (map[int64]Event, []int64, error) {
-	query := qb.Select("events.id,title,description,age_min, like_count, events.follower_count, username,firstname, lastname,user_id,profile_image," +
+	query := qb.Select("distinct events.id,title,description,age_min, like_count, events.follower_count, username,firstname, lastname,user_id,profile_image," +
 		"address, longitude, latitude, seats, attendees_count, starts_at, ends_at").
 		From("events").
 		InnerJoin("event_locations on events.id = event_locations.event_id").
@@ -100,14 +100,15 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 		InnerJoin("event_role_permissions on event_managers.role_id = event_role_permissions.role_id").
 		InnerJoin("event_categories on events.id = event_categories.event_id").
 		InnerJoin("users on event_managers.user_id = users.id").
-		Where(sq.Eq{"permission_id": pkg.PermissionUpdate}).
-		Where(sq.And{
-			sq.GtOrEq{"latitude": params.Coordinate.MinLat},
-			sq.LtOrEq{"latitude": params.Coordinate.MaxLat}}).
-		Where(sq.And{
-			sq.GtOrEq{"longitude": params.Coordinate.MinLon},
-			sq.LtOrEq{"longitude": params.Coordinate.MaxLon}}).
-		Where(sq.GtOrEq{"age_min": params.MinAge}).Where(sq.Gt{"events.id": params.LastId})
+		//Where(sq.And{
+		//	sq.GtOrEq{"latitude": params.Coordinate.MinLat},
+		//	sq.LtOrEq{"latitude": params.Coordinate.MaxLat}},
+		//).
+		//Where(sq.And{
+		//	sq.GtOrEq{"longitude": params.Coordinate.MinLon},
+		//	sq.LtOrEq{"longitude": params.Coordinate.MaxLon}}).
+		Where(sq.GtOrEq{"age_min": params.MinAge}).
+		Where(sq.Gt{"events.id": params.LastId})
 
 	if len(params.Categories) > 0 {
 		query = query.Where(sq.Eq{"event_categories.event_id": params.Categories})
