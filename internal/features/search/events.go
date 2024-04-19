@@ -27,11 +27,11 @@ type Coordinate struct {
 }
 
 type SearchArgs struct {
-	Text       string          `json:"text"`
-	Coordinate Coordinate      `json:"coordinate"`
-	Categories []int64         `json:"categories"`
-	From       *types.DateTime `json:"from"`
-	To         *types.DateTime
+	Text       string      `json:"text"`
+	Coordinate Coordinate  `json:"coordinate"`
+	Categories []int64     `json:"categories"`
+	From       *types.Date `json:"from"`
+	To         *types.Date
 	MinAge     int64  `json:"minAge"`
 	Sort       []Sort `json:"sort"`
 	LastId     int64  `json:"lastId"`
