@@ -166,10 +166,8 @@ func GetChatMessages(db *database.Database) fiber.Handler {
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
-		lastId := ctx.QueryInt("lastId")
-		if err != nil {
-			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
-		}
+		lastId := ctx.QueryInt("lastId", 0)
+
 		messages, err := FetchChatMessage(ctx.Context(), db.GetDb(), int64(eventId), userId, int64(lastId))
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
