@@ -76,6 +76,7 @@ func (e *Event) CreateEventHandler() fiber.Handler {
 			f := f
 			go func(index int, wg *sync.WaitGroup) {
 				defer wg.Done()
+				log.Println(f.Filename)
 				file, err := f.Open()
 				if err != nil {
 					log.Println("cannot open the image file")
