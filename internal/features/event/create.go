@@ -130,8 +130,9 @@ func (e *Event) CreateEventHandler() fiber.Handler {
 		if request.ID != 0 {
 			err := e.UpdateEvent(ctx.Context(), event)
 			if err != nil {
-
+				return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
 			}
+			return pkg.Success(ctx, fiber.Map{"event_id": request.ID})
 		}
 		eventID, err := e.createEvent(ctx.Context(), event)
 		if err != nil {
