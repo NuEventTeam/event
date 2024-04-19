@@ -104,7 +104,7 @@ select  event_followers.event_id from event_followers
 	}
 	rows.Close()
 
-	q := qb.Select("chat_messages.id, chat_messages.event_id,chat_messages.user_id, chat_messages.messages, max(chat_messages.created_at), username, profile_images").
+	q := qb.Select("chat_messages.id, chat_messages.event_id,chat_messages.user_id, chat_messages.messages, max(chat_messages.created_at), username, profile_image").
 		From("chat_messages").InnerJoin("users on users.id = chat_messages.user_id").
 		Where(squirrel.Eq{"chat_messages.event_id": eventIds}).OrderBy("chat_messages.created_at desc")
 
