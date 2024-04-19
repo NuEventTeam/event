@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	firebase "firebase.google.com/go"
 	"github.com/NuEventTeam/events/internal/app"
 	"github.com/NuEventTeam/events/internal/config"
 	"github.com/NuEventTeam/events/internal/features/assets"
@@ -9,10 +10,13 @@ import (
 	"github.com/NuEventTeam/events/internal/features/chat"
 	"github.com/NuEventTeam/events/internal/features/event"
 	"github.com/NuEventTeam/events/internal/features/handlers"
+	"github.com/NuEventTeam/events/internal/features/notification"
 	"github.com/NuEventTeam/events/internal/features/sms_provider"
 	"github.com/NuEventTeam/events/internal/features/user"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/internal/storage/keydb"
+
+	"google.golang.org/api/option"
 	"log"
 	"os"
 	"os/signal"
@@ -22,6 +26,13 @@ import (
 func main() {
 
 	cfg := config.MustLoad()
+	opt := option.WithCredentialsFile("./creds/fcm-creds.json")
+
+	fcm, err := firebase.NewApp(context.Background(), &firebase.Config{ProjectID: "513546748393"}, opt)
+	if err != nil {
+		log.Fatal(err)
+	}
+	notification.New(fcm)
 
 	db := database.NewDatabase(context.Background(), cfg.Database)
 	cache := keydb.New(context.Background(), cfg.Cache)

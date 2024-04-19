@@ -153,6 +153,7 @@ func (e Event) createEvent(ctx context.Context, event models.Event) (int64, erro
 	for i, c := range event.Images {
 		event.Images[i].SetFilename(fmt.Sprint(pkg.EventNamespace, "/", eventId, "/", *c.Filename))
 	}
+	e.assets.Upload(ctx, event.Images...)
 
 	err = database.AddEventImage(ctx, tx, eventId, event.Images...)
 	if err != nil {

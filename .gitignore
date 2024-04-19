@@ -3,3 +3,4 @@ config/*
 ./cmd/index.html
 static
 certs
+creds
