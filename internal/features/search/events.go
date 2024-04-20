@@ -137,14 +137,7 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 		InnerJoin("event_managers on events.id = event_managers.event_id").
 		InnerJoin("event_role_permissions on event_managers.role_id = event_role_permissions.role_id").
 		InnerJoin("event_categories on events.id = event_categories.event_id").
-		InnerJoin("users on event_managers.user_id = users.id").
-		Where(sq.And{
-			sq.GtOrEq{"latitude": params.Coordinate.MinLat},
-			sq.LtOrEq{"latitude": params.Coordinate.MaxLat}},
-		).
-		Where(sq.And{
-			sq.GtOrEq{"longitude": params.Coordinate.MinLon},
-			sq.LtOrEq{"longitude": params.Coordinate.MaxLon}})
+		InnerJoin("users on event_managers.user_id = users.id")
 	if params.MinAge != 0 {
 		query = query.Where(sq.GtOrEq{"age_min": params.MinAge})
 	}
@@ -159,6 +152,18 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 	if params.To != nil {
 		query = query.Where(sq.LtOrEq{"event_locations.start_at": time.Time(*params.To)})
 	}
+
+	if params.Text == "" {
+
+		query = query.Where(sq.And{
+			sq.GtOrEq{"latitude": params.Coordinate.MinLat},
+			sq.LtOrEq{"latitude": params.Coordinate.MaxLat}},
+		).
+			Where(sq.And{
+				sq.GtOrEq{"longitude": params.Coordinate.MinLon},
+				sq.LtOrEq{"longitude": params.Coordinate.MaxLon}})
+	}
+
 	query = query.Where(sq.Or{
 		sq.Like{"events.title": "%" + params.Text + "%"},
 		sq.Like{"events.description": "%" + params.Text + "%"}})
