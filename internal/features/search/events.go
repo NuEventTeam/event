@@ -49,6 +49,10 @@ func SearchEvents(db *database.Database) fiber.Handler {
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, "oops something went wrong", err)
 		}
+		err = getImages(ctx.Context(), db.GetDb(), eventsMap, eventIds)
+		if err != nil {
+			return pkg.Error(ctx, fiber.StatusInternalServerError, "oops something went wrong", err)
+		}
 
 		categories, err := getEventCategories(ctx.Context(), db.GetDb(), eventIds)
 		if err != nil {
@@ -89,6 +93,38 @@ type Event struct {
 	Distance      float64         `json:"distance"`
 	LikeCount     int64           `json:"likeCount"`
 	FollowerCount int64           `json:"followerCount"`
+}
+
+func getImages(ctx context.Context, db database.DBTX, events map[int64]Event, eventIds []int64) error {
+	query := qb.Select("event_id, url").From("event_images").Where(sq.Eq{"event_id": eventIds})
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	rows, err := db.Query(ctx, stmt, args...)
+	if err != nil {
+		return err
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var (
+			url     string
+			eventId int64
+		)
+		err := rows.Scan(&eventId, &url)
+		if err != nil {
+			return err
+		}
+		val := events[eventId]
+
+		val.Images = append(events[eventId].Images, fmt.Sprint(pkg.CDNBaseUrl, url))
+		events[eventId] = val
+	}
+	return nil
 }
 
 func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (map[int64]Event, []int64, error) {
