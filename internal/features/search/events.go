@@ -2,12 +2,14 @@ package search
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/NuEventTeam/events/pkg/types"
 	"github.com/gofiber/fiber/v2"
+	"github.com/jackc/pgx/v5"
 	"log"
 	"time"
 )
@@ -177,6 +179,9 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 	log.Println(stmt, args)
 	rows, err := db.Query(ctx, stmt, args...)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil, nil
+		}
 		return nil, nil, err
 	}
 	defer rows.Close()
