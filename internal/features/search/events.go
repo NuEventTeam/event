@@ -78,7 +78,7 @@ type Location struct {
 	Log            string `json:"lon"`
 	Lat            string `json:"lat"`
 	AttendeesCount int64  `json:"attendeesCount"`
-	Seats          int64  `json:"seats"`
+	Seats          *int64 `json:"seats"`
 }
 
 type Event struct {
