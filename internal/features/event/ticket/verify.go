@@ -14,15 +14,22 @@ import (
 func VerifyTicket(db *database.Database, cache *keydb.Cache, secret string) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		ticketId := ctx.Query("ticket")
+		eventIdParam, err := ctx.ParamsInt("eventId")
 		log.Println("ticker id", ticketId)
 		ticket, err := cache.Get(ctx.Context(), ticketId)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
 		log.Println("ticket", ticket)
+
 		followerId, eventId, err := ParseTicket(ticket.(string), secret)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
+		}
+		if eventId != int64(eventIdParam) {
+			if err != nil {
+				return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
+			}
 		}
 		log.Println("Follower ID", "event id", followerId, eventId)
 		ok, err := checkIfFollows(ctx.Context(), db.GetDb(), eventId, followerId)
