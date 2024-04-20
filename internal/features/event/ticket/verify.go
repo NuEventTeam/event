@@ -26,6 +26,7 @@ func VerifyTicket(db *database.Database, cache *keydb.Cache, secret string) fibe
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
+		log.Println(eventIdParam, eventId)
 		if eventId != int64(eventIdParam) {
 			if err != nil {
 				return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
