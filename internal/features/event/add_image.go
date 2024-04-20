@@ -40,7 +40,7 @@ func (e Event) AddImage() fiber.Handler {
 
 				filename := ulid.Make().String() + path.Ext(f.Filename)
 
-				img, err := assets.NewImage(filename, file, assets.WithWidthAndHeight(500, 500))
+				img, err := assets.NewImage(filename, file)
 
 				if err != nil {
 					log.Println("while uploading image")
