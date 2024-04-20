@@ -78,7 +78,7 @@ type Location struct {
 	Log            string `json:"lon"`
 	Lat            string `json:"lat"`
 	AttendeesCount int64  `json:"attendeesCount"`
-	Seats          *int64 `json:"seats"`
+	Seats          int64  `json:"seats"`
 }
 
 type Event struct {
@@ -89,7 +89,7 @@ type Event struct {
 	Images        []string        `json:"images"`
 	Categories    []Categories    `json:"categories"`
 	Author        User            `json:"author"`
-	AgeMin        *int64          `json:"ageMin"`
+	AgeMin        int64           `json:"ageMin"`
 	StartsAt      *types.DateTime `json:"startsAt"`
 	EndsAt        *types.DateTime `json:"endsAt"`
 	Distance      float64         `json:"distance"`
