@@ -136,7 +136,6 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 		InnerJoin("event_role_permissions on event_managers.role_id = event_role_permissions.role_id").
 		InnerJoin("event_categories on events.id = event_categories.event_id").
 		InnerJoin("users on event_managers.user_id = users.id").
-		Where(sq.Gt{"events.id": params.LastId}).
 		Where(sq.And{
 			sq.GtOrEq{"latitude": params.Coordinate.MinLat},
 			sq.LtOrEq{"latitude": params.Coordinate.MaxLat}},
