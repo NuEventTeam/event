@@ -96,8 +96,8 @@ func GetFollowedEvents(ctx context.Context, db database.DBTX, userId, lastEventI
 		)
 
 		err := rows.Scan(&f.ID, &f.Title, &f.LikesCount, &f.Price, &f.Address, &s, &e, &f.AttendeesCount)
-		if err != nil {
-			return nil, err
+		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
 		}
 
 		f.StartsAt = f.StartsAt.FromTime(&s)
