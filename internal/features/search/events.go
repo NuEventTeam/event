@@ -137,13 +137,13 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 		InnerJoin("event_categories on events.id = event_categories.event_id").
 		InnerJoin("users on event_managers.user_id = users.id").
 		Where(sq.Gt{"events.id": params.LastId}).
-	Where(sq.And{
-		sq.GtOrEq{"latitude": params.Coordinate.MinLat},
-		sq.LtOrEq{"latitude": params.Coordinate.MaxLat}},
-	).
-	Where(sq.And{
-		sq.GtOrEq{"longitude": params.Coordinate.MinLon},
-		sq.LtOrEq{"longitude": params.Coordinate.MaxLon}}).
+		Where(sq.And{
+			sq.GtOrEq{"latitude": params.Coordinate.MinLat},
+			sq.LtOrEq{"latitude": params.Coordinate.MaxLat}},
+		).
+		Where(sq.And{
+			sq.GtOrEq{"longitude": params.Coordinate.MinLon},
+			sq.LtOrEq{"longitude": params.Coordinate.MaxLon}})
 	if params.MinAge != 0 {
 		query = query.Where(sq.GtOrEq{"age_min": params.MinAge})
 	}
