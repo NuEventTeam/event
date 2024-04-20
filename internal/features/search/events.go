@@ -33,10 +33,10 @@ type SearchArgs struct {
 	Coordinate Coordinate  `json:"coordinate"`
 	Categories []int64     `json:"categories"`
 	From       *types.Date `json:"from"`
-	To         *types.Date
-	MinAge     int64  `json:"minAge"`
-	Sort       []Sort `json:"sort"`
-	LastId     int64  `json:"lastId"`
+	To         *types.Date `json:"to"`
+	MinAge     int64       `json:"minAge"`
+	Sort       []Sort      `json:"sort"`
+	LastId     int64       `json:"lastId"`
 }
 
 func SearchEvents(db *database.Database) fiber.Handler {
@@ -190,8 +190,8 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 	for rows.Next() {
 		var (
 			e        Event
-			startsAt time.Time
-			endsAt   time.Time
+			startsAt *time.Time
+			endsAt   *time.Time
 		)
 
 		err := rows.Scan(&e.Id, &e.Title, &e.Description, &e.AgeMin, &e.LikeCount, &e.FollowerCount, &e.Author.Username, &e.Author.Firstname, &e.Author.Lastname, &e.Author.ID, &e.Author.ProfileImage,
@@ -202,10 +202,10 @@ func searchForEvent(ctx context.Context, db database.DBTX, params SearchArgs) (m
 		}
 
 		if !startsAt.IsZero() {
-			e.StartsAt = e.StartsAt.FromTime(&startsAt)
+			e.StartsAt = e.StartsAt.FromTime(startsAt)
 		}
 		if !endsAt.IsZero() {
-			e.EndsAt = e.EndsAt.FromTime(&endsAt)
+			e.EndsAt = e.EndsAt.FromTime(endsAt)
 		}
 
 		events[e.Id] = e
