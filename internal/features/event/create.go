@@ -99,6 +99,14 @@ func (e *Event) CreateEventHandler() fiber.Handler {
 
 		wg.Wait()
 		log.Printf("%+v", images)
+		if request.MinAge == nil {
+			request.MinAge = new(int64)
+			*request.MinAge = 0
+		}
+		if request.Seats == nil {
+			request.Seats = new(int64)
+			*request.Seats = 0
+		}
 		event := models.Event{
 			Title:       &request.Title,
 			Description: &request.Description,

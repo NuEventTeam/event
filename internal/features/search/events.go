@@ -89,7 +89,7 @@ type Event struct {
 	Images        []string        `json:"images"`
 	Categories    []Categories    `json:"categories"`
 	Author        User            `json:"author"`
-	AgeMin        int64           `json:"ageMin"`
+	AgeMin        *int64          `json:"ageMin"`
 	StartsAt      *types.DateTime `json:"startsAt"`
 	EndsAt        *types.DateTime `json:"endsAt"`
 	Distance      float64         `json:"distance"`
