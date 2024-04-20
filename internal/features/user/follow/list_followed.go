@@ -30,7 +30,7 @@ func GetFollowed(ctx context.Context, db database.DBTX, userId int64) ([]Followe
 	rows, err := db.Query(ctx, query, userId)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, err
+			return nil, nil
 		}
 		return nil, err
 	}

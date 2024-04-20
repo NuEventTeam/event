@@ -61,7 +61,7 @@ func GetLikedEvents(ctx context.Context, db database.DBTX, userId, lastEventId i
 	rows, err := db.Query(ctx, stmt, args...)
 	if err != nil {
 		if errors.Is(err, pgx.ErrNoRows) {
-			return nil, err
+			return nil, nil
 		}
 		return nil, err
 	}

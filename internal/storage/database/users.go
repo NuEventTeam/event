@@ -131,6 +131,9 @@ func GetUserPreferences(ctx context.Context, db DBTX, userID int64) ([]models.Ca
 
 	rows, err := db.Query(ctx, stmt, params...)
 	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
 		return nil, err
 	}
 
