@@ -193,8 +193,8 @@ func (u *User) GetOwnUserProfile() fiber.Handler {
 			"followed_user": followedUsers,
 			"events": fiber.Map{
 				"followed":  followedEvents,
-				"favourite": followedEvents,
-				"past":      followedEvents,
+				"favourite": likedEvents,
+				"past":      pastEvents,
 			},
 		}
 
