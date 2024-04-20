@@ -39,6 +39,7 @@ func GetFollowedEventsHandler(db *database.Database) fiber.Handler {
 
 type FollowedEvent struct {
 	ID             int64           `json:"id"`
+	Description    string          `json:"description"`
 	Title          string          `json:"title"`
 	Address        string          `json:"address"`
 	Date           types.Date      `json:"date"`
@@ -54,6 +55,7 @@ func GetFollowedEvents(ctx context.Context, db database.DBTX, userId, lastEventI
 	query := qb.Select(` 
 					events.id,
 					events.title, 
+events.description,
 					events.like_count,
 					events.price,
 					event_locations.address,
@@ -95,7 +97,7 @@ func GetFollowedEvents(ctx context.Context, db database.DBTX, userId, lastEventI
 			e time.Time
 		)
 
-		err := rows.Scan(&f.ID, &f.Title, &f.LikesCount, &f.Price, &f.Address, &s, &e, &f.AttendeesCount)
+		err := rows.Scan(&f.ID, &f.Title, &f.Description, &f.LikesCount, &f.Price, &f.Address, &s, &e, &f.AttendeesCount)
 		if err != nil && !errors.Is(err, pgx.ErrNoRows) {
 			return nil, nil
 		}

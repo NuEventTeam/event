@@ -15,6 +15,7 @@ func GetOwnEvents(ctx context.Context, db database.DBTX, userId, lastEventId int
 	query := qb.Select(` 
 					events.id,
 					events.title, 
+events.description,
 					events.like_count,
 					events.price,
 					event_locations.address,
@@ -57,7 +58,7 @@ func GetOwnEvents(ctx context.Context, db database.DBTX, userId, lastEventId int
 			e time.Time
 		)
 
-		err := rows.Scan(&f.ID, &f.Title, &f.LikesCount, &f.Price, &f.Address, &s, &e, &f.AttendeesCount)
+		err := rows.Scan(&f.ID, &f.Title, &f.Description, &f.LikesCount, &f.Price, &f.Address, &s, &e, &f.AttendeesCount)
 		if err != nil {
 			return nil, err
 		}
