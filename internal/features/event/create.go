@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/NuEventTeam/events/internal/features/assets"
+	"github.com/NuEventTeam/events/internal/features/chat/chat_features"
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
@@ -17,21 +18,23 @@ import (
 )
 
 type CreateEventRequest struct {
-	ID          int64          `json:"id"`
-	Title       string         `json:"title"`
-	Description string         `json:"description"`
-	Price       *float32       `json:"price"`
-	Seats       *int64         `json:"seats"`
-	MaxAge      *int64         `json:"max_age"`
-	MinAge      *int64         `json:"min_age"`
-	Address     string         `json:"address"`
-	LocId       int64          `json:"locationId"`
-	Longitude   float64        `json:"lg"`
-	Latitude    float64        `json:"lt"`
-	Date        types.Date     `json:"date"`
-	StartsAt    types.DateTime `json:"starts_at"`
-	EndsAt      types.DateTime `json:"end_at"`
-	Categories  []int64        `json:"categories"`
+	ID               int64          `json:"id"`
+	Title            string         `json:"title"`
+	Description      string         `json:"description"`
+	Price            *float32       `json:"price"`
+	Seats            *int64         `json:"seats"`
+	MaxAge           *int64         `json:"max_age"`
+	MinAge           *int64         `json:"min_age"`
+	Address          string         `json:"address"`
+	LocId            int64          `json:"locationId"`
+	Longitude        float64        `json:"lg"`
+	Latitude         float64        `json:"lt"`
+	Date             types.Date     `json:"date"`
+	StartsAt         types.DateTime `json:"starts_at"`
+	EndsAt           types.DateTime `json:"end_at"`
+	Categories       []int64        `json:"categories"`
+	RemoveCategories []int64        `json:"removeCategories"`
+	RemoveImages     []int64        `json:"removeImages"`
 }
 
 func (c *CreateEventRequest) FromPayload(payload []byte) error {
@@ -135,7 +138,19 @@ func (e *Event) CreateEventHandler() fiber.Handler {
 			event.LocalPrice = new(int64)
 			*event.LocalPrice = int64(*request.Price * 100)
 		}
-
+		if request.ID != 0 {
+			event.ID = request.ID
+			event.RemoveCategories = request.RemoveCategories
+			log.Println(request.RemoveImages)
+			event.RemoveImagesIds = request.RemoveImages
+			err = e.UpdateEvent(ctx.Context(), event)
+			if err != nil {
+				if err != nil {
+					return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
+				}
+			}
+			return pkg.Success(ctx, fiber.Map{"event_id": request.ID})
+		}
 		eventID, err := e.createEvent(ctx.Context(), event)
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
@@ -195,6 +210,11 @@ func (e Event) createEvent(ctx context.Context, event models.Event) (int64, erro
 		}
 
 		err = database.AddEventManager(ctx, tx, eventId, m)
+		if err != nil {
+			return 0, err
+		}
+
+		err = chat_features.AddChatMember(ctx, tx, eventId, m.User.UserID, pkg.ChatRoleAdmin)
 		if err != nil {
 			return 0, err
 		}

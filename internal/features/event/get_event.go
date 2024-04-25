@@ -18,6 +18,8 @@ import (
 func (e Event) GetEventByIDHandler() fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		eventID, err := ctx.ParamsInt("eventId", 0)
+		userId := ctx.Locals("userId").(int64)
+
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, "not proper id", err)
 
@@ -26,7 +28,13 @@ func (e Event) GetEventByIDHandler() fiber.Handler {
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusBadRequest, err.Error(), err)
 		}
-
+		if userId != 0 {
+			for _, mans := range event.Managers {
+				if mans.User.UserID == userId {
+					event.IsMy = true
+				}
+			}
+		}
 		return pkg.Success(ctx, event)
 	}
 }

@@ -31,6 +31,27 @@ func MustAuth(jwtSecret string) fiber.Handler {
 	}
 }
 
+func ExtractUserIdFromAuthHeader(jwtSecret string) fiber.Handler {
+	return func(ctx *fiber.Ctx) error {
+		tokenString := ctx.Get("Authorization")
+		if tokenString == "" {
+			ctx.Locals("userId", int64(0))
+			return ctx.Next()
+		}
+		headerParts := strings.Split(tokenString, " ")
+		if len(headerParts) != 2 || headerParts[0] != "Bearer" {
+			ctx.Locals("userId", int64(0))
+		}
+		userID, userAgent, err := pkg.ParseJWT(headerParts[1], jwtSecret)
+		if err != nil {
+			ctx.Locals("userId", int64(0))
+		}
+		ctx.Locals("userId", userID)
+		ctx.Locals("userAgent", userAgent)
+		return ctx.Next()
+	}
+}
+
 func (h *Handler) HasPermission(permission int64) fiber.Handler {
 	return func(ctx *fiber.Ctx) error {
 		userId := ctx.Locals("userId").(int64)

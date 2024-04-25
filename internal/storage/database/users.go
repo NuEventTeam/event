@@ -177,7 +177,7 @@ func AddUserPreference(ctx context.Context, db DBTX, userID int64, category ...m
 	return err
 }
 
-func RemoveUserPreference(ctx context.Context, db DBTX, userID int64, categoryID int64) error {
+func RemoveUserPreference(ctx context.Context, db DBTX, userID int64, categoryID []int64) error {
 
 	query := qb.Delete("user_preferences").
 		Where(sq.Eq{"user_id": userID}).

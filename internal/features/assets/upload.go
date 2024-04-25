@@ -3,18 +3,20 @@ package assets
 import (
 	"bufio"
 	"context"
-	"fmt"
 	"log"
 	"os"
 	"path"
+	"sync"
 )
 
 func (s *Assets) Upload(ctx context.Context, images ...Image) {
-	log.Println(images)
+	wg := &sync.WaitGroup{}
 
+	wg.Add(len(images))
 	for _, img := range images {
 		img := img
-		go func() {
+		go func(wg *sync.WaitGroup) {
+			defer wg.Done()
 			if img.Filename == nil {
 				return
 			}
@@ -48,7 +50,6 @@ func (s *Assets) Upload(ctx context.Context, images ...Image) {
 					log.Println(err)
 					return
 				}
-				fmt.Println(len(text))
 
 			}
 
@@ -56,7 +57,8 @@ func (s *Assets) Upload(ctx context.Context, images ...Image) {
 			if err != nil {
 				log.Println("error while uploading to s3")
 			}
-		}()
+		}(wg)
 
 	}
+	wg.Wait()
 }

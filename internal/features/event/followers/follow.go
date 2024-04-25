@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"github.com/NuEventTeam/events/internal/features/chat/chat_features"
 	"github.com/NuEventTeam/events/internal/storage/database"
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/gofiber/fiber/v2"
@@ -61,7 +62,10 @@ func addFollower(ctx context.Context, db *database.Database, eventId, followerId
 		return err
 	}
 	log.Println("increade count")
-
+	err = chat_features.AddChatMember(ctx, tx, eventId, followerId, pkg.ChatRoleUser)
+	if err != nil {
+		return err
+	}
 	if err := tx.Commit(ctx); err != nil {
 		return err
 	}

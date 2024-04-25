@@ -3,6 +3,7 @@ package user
 import (
 	"context"
 	"fmt"
+	sq "github.com/Masterminds/squirrel"
 	"github.com/NuEventTeam/events/internal/features/assets"
 	"github.com/NuEventTeam/events/internal/models"
 	"github.com/NuEventTeam/events/internal/storage/database"
@@ -17,14 +18,15 @@ import (
 )
 
 type MobileUser struct {
-	UserID       int64   `json:"userID,omitempty"`
-	Username     string  `json:"username,omitempty"`
-	ProfileImage *string `json:"profileImage,omitempty"`
-	BirthDate    string  `json:"birthDate,omitempty"`
-	Phone        string  `json:"phone,omitempty"`
-	Firstname    string  `json:"firstname,omitempty"`
-	Lastname     *string `json:"lastname,omitempty"`
-	Preferences  []int64 `json:"preferences,omitempty"`
+	UserID            int64   `json:"userID,omitempty"`
+	Username          string  `json:"username,omitempty"`
+	ProfileImage      *string `json:"profileImage,omitempty"`
+	BirthDate         string  `json:"birthDate,omitempty"`
+	Phone             string  `json:"phone,omitempty"`
+	Firstname         string  `json:"firstname,omitempty"`
+	Lastname          *string `json:"lastname,omitempty"`
+	Preferences       []int64 `json:"preferences,omitempty"`
+	RemovePreferences []int64 `json:"removePreferences"`
 }
 
 func (u User) CreateMobileUserHandler() fiber.Handler {
@@ -102,16 +104,17 @@ func (u User) CreateMobileUserHandler() fiber.Handler {
 
 		}
 		err = u.CreateUser(ctx.Context(), models.User{
-			ID:           userId,
-			UserID:       userId,
-			Phone:        request.Phone,
-			Username:     request.Username,
-			Firstname:    request.Firstname,
-			Lastname:     request.Lastname,
-			Image:        image,
-			ProfileImage: request.ProfileImage,
-			BirthDate:    birthDate,
-			Preferences:  categoryIds,
+			ID:                userId,
+			UserID:            userId,
+			Phone:             request.Phone,
+			Username:          request.Username,
+			Firstname:         request.Firstname,
+			Lastname:          request.Lastname,
+			Image:             image,
+			ProfileImage:      request.ProfileImage,
+			BirthDate:         birthDate,
+			Preferences:       categoryIds,
+			RemovePreferences: request.RemovePreferences,
 		})
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
@@ -156,12 +159,15 @@ func (u User) CreateUserHandler() fiber.Handler {
 		}
 
 		var categoryIds []models.Category
-
+		var removePreference []int64
 		for _, i := range form.Value["category_ids"] {
 			id, _ := strconv.ParseInt(i, 10, 64)
 			categoryIds = append(categoryIds, models.Category{ID: id})
 		}
-
+		for _, i := range form.Value["remove_preferences"] {
+			id, _ := strconv.ParseInt(i, 10, 64)
+			removePreference = append(removePreference, id)
+		}
 		if pkg.MinCategories > len(categoryIds) {
 			return pkg.Error(ctx, fiber.StatusBadRequest, "must include 3 cats", fmt.Errorf("minimum of 3 cats"))
 
@@ -199,15 +205,16 @@ func (u User) CreateUserHandler() fiber.Handler {
 
 		}
 		err = u.CreateUser(ctx.Context(), models.User{
-			ID:           userId,
-			UserID:       userId,
-			Username:     form.Value["username"][0],
-			ProfileImage: image.Filename,
-			BirthDate:    birthDate,
-			Firstname:    form.Value["firstname"][0],
-			Lastname:     &form.Value["lastname"][0],
-			Preferences:  categoryIds,
-			Image:        image,
+			ID:                userId,
+			UserID:            userId,
+			Username:          form.Value["username"][0],
+			ProfileImage:      image.Filename,
+			BirthDate:         birthDate,
+			Firstname:         form.Value["firstname"][0],
+			Lastname:          &form.Value["lastname"][0],
+			Preferences:       categoryIds,
+			Image:             image,
+			RemovePreferences: removePreference,
 		})
 		if err != nil {
 			return pkg.Error(ctx, fiber.StatusInternalServerError, err.Error(), err)
@@ -226,12 +233,28 @@ func (u User) CreateUserHandler() fiber.Handler {
 }
 
 func (u User) CreateUser(ctx context.Context, user models.User) error {
+	preferenceCount, err := countPreferences(ctx, u.db.GetDb(), user.UserID)
+	if err != nil {
+		return err
+	}
+
+	if preferenceCount-len(user.RemovePreferences)+len(user.Preferences) < 3 {
+		return fmt.Errorf("cannot remove preferences must be more than 3")
+	}
+
 	tx, err := u.db.BeginTx(ctx)
 	if err != nil {
 		return err
 	}
 
 	defer tx.Rollback(ctx)
+
+	if len(user.RemovePreferences) > 0 {
+		err := removePreferences(ctx, tx, user.UserID, user.RemovePreferences)
+		if err != nil {
+			return err
+		}
+	}
 
 	err = database.CreateUser(ctx, tx, user)
 	if err != nil {
@@ -250,6 +273,28 @@ func (u User) CreateUser(ctx context.Context, user models.User) error {
 	}
 
 	return nil
+}
+
+func removePreferences(ctx context.Context, db database.DBTX, userId int64, preferences []int64) error {
+	query := qb.Delete("user_preferences").
+		Where(sq.Eq{"user_id": userId}).
+		Where(sq.Eq{"category_id": preferences})
+
+	stmt, args, err := query.ToSql()
+	if err != nil {
+		return err
+	}
+
+	_, err = db.Exec(ctx, stmt, args...)
+	return err
+}
+
+func countPreferences(ctx context.Context, db database.DBTX, userId int64) (int, error) {
+	query := `select count(*) from user_preferences where user_id = $1`
+	var count int
+
+	err := db.QueryRow(ctx, query, userId).Scan(&count)
+	return count, err
 }
 
 func (e *User) CheckUsername(ctx context.Context, username string) (bool, error) {

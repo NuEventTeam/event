@@ -17,7 +17,10 @@ func (h *Handler) SetUpEventRoutes(router *fiber.App) {
 	apiV1.Post("/event/create", MustAuth(h.JwtSecret), h.EventSvc.CreateEventHandler())
 	apiV1.Get("/event/show/all", h.EventSvc.GetAllEvenst())
 
-	apiV1.Get("/event/show/:eventId", h.EventSvc.GetEventByIDHandler())
+	apiV1.Get("/event/show/:eventId",
+		ExtractUserIdFromAuthHeader(h.JwtSecret),
+		h.EventSvc.GetEventByIDHandler(),
+	)
 
 	apiV1.Put("/event/posts/:eventId",
 		MustAuth(h.JwtSecret),

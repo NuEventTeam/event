@@ -12,6 +12,10 @@ const (
 	PermissionVerify = 3
 )
 
+const (
+	ChatRoleUser  = 0
+	ChatRoleAdmin = 1
+)
 const MinCategories = 3
 
 const (

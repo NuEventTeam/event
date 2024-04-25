@@ -8,6 +8,7 @@ import (
 	"github.com/NuEventTeam/events/pkg"
 	"github.com/NuEventTeam/events/pkg/types"
 	"github.com/gofiber/fiber/v2"
+	"log"
 )
 
 type UpdateEventRequest struct {
@@ -95,12 +96,14 @@ func (e Event) UpdateEvent(ctx context.Context, event models.Event) error {
 	}
 
 	if len(event.RemoveImagesIds) > 0 {
-		imgs, err := database.GetEventImages(ctx, tx, event.ID, event.ImageIds...)
+
+		log.Println(event.RemoveImagesIds)
+		imgs, err := database.GetEventImages(ctx, tx, event.ID, event.RemoveImagesIds...)
 		if err != nil {
 			return err
 		}
 
-		err = database.RemoveImages(ctx, tx, event.ID, event.ImageIds...)
+		err = database.RemoveImages(ctx, tx, event.ID, event.RemoveImagesIds...)
 		if err != nil {
 			return err
 		}
